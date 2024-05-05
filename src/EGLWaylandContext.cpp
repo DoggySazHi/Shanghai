@@ -39,15 +39,15 @@ bool EGLWaylandContext::init(wl_display* waylandDisplay) {
         return false;
     }
 
-    getPlatformDisplayExt = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("getPlatformDisplayExt");
+    getPlatformDisplayExt = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("eglGetPlatformDisplayEXT");
     if (getPlatformDisplayExt == nullptr) {
-        std::cerr << "Failed to get getPlatformDisplayExt\n";
+        std::cerr << "Failed to get eglGetPlatformDisplayEXT\n";
         return false;
     }
 
-    createPlatformWindowSurfaceExt = (PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC) eglGetProcAddress("createPlatformWindowSurfaceExt");
+    createPlatformWindowSurfaceExt = (PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC) eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
     if (createPlatformWindowSurfaceExt == nullptr) {
-        std::cerr << "Failed to get createPlatformWindowSurfaceExt\n";
+        std::cerr << "Failed to get eglCreatePlatformWindowSurfaceEXT\n";
         return false;
     }
 
@@ -110,4 +110,20 @@ EGLWaylandContext::EGLWaylandContext(wl_display *waylandDisplay) {
 
 EGLWaylandContext::~EGLWaylandContext() {
     finish();
+}
+
+EGLSurface EGLWaylandContext::createSurface(wl_egl_window* window) {
+    return createPlatformWindowSurfaceExt(display, config, window, nullptr);
+}
+
+void EGLWaylandContext::destroySurface(wl_egl_window *window, EGLSurface eglSurface) {
+    eglDestroySurface(display, eglSurface);
+}
+
+void EGLWaylandContext::makeCurrent(EGLSurface eglSurface) {
+    eglMakeCurrent(display, eglSurface, eglSurface, context);
+}
+
+void EGLWaylandContext::swapBuffers(EGLSurface eglSurface) {
+    eglSwapBuffers(display, eglSurface);
 }
