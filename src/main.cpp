@@ -502,7 +502,7 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 int main(int argc, char **argv) {
-    char* wlrNamespace = "wlroots";
+    const char* wlrNamespace = "wlroots";
     int exclusive_zone = 0;
     int32_t margin_right = 0, margin_bottom = 0, margin_left = 0;
     bool found;
@@ -523,7 +523,7 @@ int main(int argc, char **argv) {
                 break;
             case 'l': {
                 struct {
-                    char *name;
+                    const char *name;
                     enum zwlr_layer_shell_v1_layer value;
                 } layers[] = {
                         { "background", ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND },
@@ -548,7 +548,7 @@ int main(int argc, char **argv) {
             }
             case 'a': {
                 struct {
-                    char *name;
+                    const char *name;
                     uint32_t value;
                 } anchors[] = {
                         { "top", ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP },
