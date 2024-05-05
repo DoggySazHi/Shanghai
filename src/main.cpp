@@ -14,6 +14,8 @@
 #include "xdg-shell-client-protocol.h"
 #include "EGLWaylandContext.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 static struct wl_display *display;
 static struct wl_compositor *compositor;
@@ -41,9 +43,9 @@ struct wlr_egl_surface *popup_egl_surface;
 struct wl_callback *popup_frame_callback;
 float popup_alpha = 1.0, popup_red = 0.5f;
 
-static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
 static uint32_t anchor = 0;
-static uint32_t width = 256, height = 256;
+static uint32_t width = 128, height = 128;
 static int32_t margin_top = 0;
 static double alpha = 1.0;
 static bool run_display = true;
@@ -58,27 +60,31 @@ struct wl_cursor_image *cursor_image;
 struct wl_cursor_image *popup_cursor_image;
 struct wl_surface *cursor_surface, *input_surface;
 
-static struct {
-    struct timespec last_frame;
-    float color[3];
-    int dec;
-} demo;
+#define TEXTURE_COUNT 46
+GLuint textures[TEXTURE_COUNT];
+int textureIndex = 0;
 
 EGLWaylandContext* eglWaylandContext;
 
 unsigned int shaderProgram;
 const char *vertexShaderSource = "#version 320 es\n"
                                  "layout (location = 0) in vec3 aPos;\n"
+                                 "layout (location = 1) in vec2 aTexCoord;\n"
+                                 "precision mediump float;\n"
+                                 "out vec2 TexCoord;\n"
                                  "void main()\n"
                                  "{\n"
                                  "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                 "   TexCoord = aTexCoord;\n"
                                  "}\0";
 const char *fragmentShaderSource = "#version 320 es\n"
                                    "precision mediump float;\n"
                                    "out vec4 FragColor;\n"
+                                   "in vec2 TexCoord;\n"
+                                   "uniform sampler2D texture2;\n"
                                    "void main()\n"
                                    "{\n"
-                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                   "   FragColor = texture(texture2, TexCoord);\n"
                                    "}\n\0";
 
 static void draw();
@@ -110,41 +116,14 @@ static struct wl_callback_listener popup_frame_listener = {
 
 static void draw() {
     eglWaylandContext->makeCurrent(egl_surface);
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-
-    long ms = (ts.tv_sec - demo.last_frame.tv_sec) * 1000 +
-              (ts.tv_nsec - demo.last_frame.tv_nsec) / 1000000;
-    int inc = (demo.dec + 1) % 3;
-
-    if (!buttons) {
-        demo.color[inc] += ms / 2000.0f;
-        demo.color[demo.dec] -= ms / 2000.0f;
-
-        if (demo.color[demo.dec] < 0.0f) {
-            demo.color[inc] = 1.0f;
-            demo.color[demo.dec] = 0.0f;
-            demo.dec = inc;
-        }
-    }
-
-    if (animate) {
-        frame += ms / 50.0;
-        int32_t old_top = margin_top;
-        margin_top = -(20 - ((int)frame % 20));
-        if (old_top != margin_top) {
-            zwlr_layer_surface_v1_set_margin(layer_surface,
-                                             margin_top, 0, 0, 0);
-            wl_surface_commit(wl_surface);
-        }
-    }
 
     glViewport(0, 0, width, height);
     if (buttons) {
-        glClearColor(1, 1, 1, alpha);
-    } else {
-        glClearColor(demo.color[0], demo.color[1], demo.color[2], alpha);
+        // Do something, idk
+        textureIndex = (textureIndex + 1) % TEXTURE_COUNT;
     }
+
+    glClearColor(0, 0, 0, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     if (cur_x != -1 && cur_y != -1) {
@@ -158,24 +137,33 @@ static void draw() {
     glUseProgram(shaderProgram);
 
     static const GLfloat vertices[] = {
-            -0.5f, -0.5f, 0.0f, // left
-            0.5f, -0.5f, 0.0f, // right
-            0.0f,  0.5f, 0.0f  // top
+            -1.0, -1.0, 0.0, 0.0, 0.0,
+            1.0, -1.0, 0.0, 1.0, 0.0,
+            1.0, 1.0, 0.0, 1.0, 1.0,
+            1.0, 1.0, 0.0, 1.0, 1.0,
+            -1.0, 1.0, 0.0, 0.0, 1.0,
+            -1.0, -1.0, 0.0, 0.0, 0.0,
     };
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), vertices);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), vertices);
     glEnableVertexAttribArray(0);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), vertices + 3);
+    glEnableVertexAttribArray(1);
+
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 0);
+    glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
     frame_callback = wl_surface_frame(wl_surface);
     wl_callback_add_listener(frame_callback, &frame_listener, NULL);
 
     eglWaylandContext->swapBuffers(egl_surface);
-
-    demo.last_frame = ts;
 }
 
 static void draw_popup() {
@@ -724,6 +712,30 @@ int main(int argc, char **argv) {
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    glGenTextures(TEXTURE_COUNT, textures);
+    for (int i = 0; i < TEXTURE_COUNT; i++) {
+        glBindTexture(GL_TEXTURE_2D, textures[i]);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        int imgWidth, imgHeight, nrChannels;
+        stbi_set_flip_vertically_on_load(true);
+        std::string path = "img/shime" + std::to_string(i + 1) + ".png";
+        unsigned char *data = stbi_load(path.c_str(), &imgWidth, &imgHeight, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+        else
+        {
+            std::cout << "Failed to load texture" << std::endl;
+        }
+        stbi_image_free(data);
+    }
 
     draw();
 

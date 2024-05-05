@@ -68,3 +68,5 @@ target_link_libraries(Shanghai
         GLESv2
         wlroots
 )
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/img DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
