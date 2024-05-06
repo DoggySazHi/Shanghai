@@ -13,18 +13,18 @@ public:
     explicit EGLWaylandContext(wl_display* waylandDisplay);
     ~EGLWaylandContext();
     EGLSurface createSurface(wl_egl_window* window);
-    void destroySurface(wl_egl_window* window, EGLSurface eglSurface);
+    void destroySurface(EGLSurface eglSurface);
     void makeCurrent(EGLSurface eglSurface);
     void swapBuffers(EGLSurface eglSurface);
 private:
     bool init(wl_display* waylandDisplay);
     void finish();
 
-    EGLDisplay display;
-    EGLConfig config;
-    EGLContext context;
-    PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC createPlatformWindowSurfaceExt;
-    PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplayExt;
+    EGLDisplay display = EGL_NO_DISPLAY;
+    EGLConfig config = nullptr;
+    EGLContext context = EGL_NO_CONTEXT;
+    PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC createPlatformWindowSurfaceExt = nullptr;
+    PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplayExt = nullptr;
 };
 
 

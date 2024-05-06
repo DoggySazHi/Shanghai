@@ -37,16 +37,12 @@ static uint32_t anchor = 0 | ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFA
 static uint32_t width = 128, height = 128;
 static int32_t margin_top = 0;
 static int32_t margin_bottom = 0;
-static double alpha = 1.0;
 static bool run_display = true;
-static bool animate = false;
 static enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
-static double frame = 0;
 static int cur_x = -1, cur_y = -1;
 static int buttons = 0;
 
 struct wl_cursor_image *cursor_image;
-struct wl_cursor_image *popup_cursor_image;
 struct wl_surface *cursor_surface, *input_surface;
 
 #define TEXTURE_COUNT 46
@@ -59,8 +55,7 @@ Shader* shader;
 
 static void draw();
 
-static void surface_frame_callback(
-        void *data, struct wl_callback *cb, uint32_t time) {
+static void surface_frame_callback([[maybe_unused]] void *data, struct wl_callback *cb, [[maybe_unused]] uint32_t time) {
     wl_callback_destroy(cb);
     frame_callback = nullptr;
     draw();
@@ -124,8 +119,7 @@ static void draw() {
     eglWaylandContext->swapBuffers(egl_surface);
 }
 
-static void xdg_surface_handle_configure(void *data,
-                                         struct xdg_surface *xdg_surface, uint32_t serial) {
+static void xdg_surface_handle_configure([[maybe_unused]] void *data, struct xdg_surface *xdg_surface, uint32_t serial) {
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
@@ -144,8 +138,8 @@ static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_lay
     zwlr_layer_surface_v1_ack_configure(surface, serial);
 }
 
-static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface) {
-    eglWaylandContext->destroySurface(egl_window, egl_surface);
+static void layer_surface_closed([[maybe_unused]] void *data, struct zwlr_layer_surface_v1 *surface) {
+    eglWaylandContext->destroySurface(egl_surface);
     wl_egl_window_destroy(egl_window);
     zwlr_layer_surface_v1_destroy(surface);
     wl_surface_destroy(wl_surface);
@@ -157,7 +151,7 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
         .closed = layer_surface_closed,
 };
 
-static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
+static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, [[maybe_unused]] wl_fixed_t surface_x, [[maybe_unused]] wl_fixed_t surface_y) {
     struct wl_cursor_image *image;
     image = cursor_image;
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
@@ -190,23 +184,23 @@ static void wl_pointer_button([[maybe_unused]] void *data, [[maybe_unused]] stru
     }
 }
 
-static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
+static void wl_pointer_axis([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t axis, [[maybe_unused]] wl_fixed_t value) {
     // Unused
 }
 
-static void wl_pointer_frame(void *data, struct wl_pointer *wl_pointer) {
+static void wl_pointer_frame([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer) {
     // Unused
 }
 
-static void wl_pointer_axis_source(void *data, struct wl_pointer *wl_pointer, uint32_t axis_source) {
+static void wl_pointer_axis_source([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t axis_source) {
     // Unused
 }
 
-static void wl_pointer_axis_stop(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis) {
+static void wl_pointer_axis_stop([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t axis) {
     // Unused
 }
 
-static void wl_pointer_axis_discrete(void *data, struct wl_pointer *wl_pointer, uint32_t axis, int32_t discrete) {
+static void wl_pointer_axis_discrete([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t axis, [[maybe_unused]] int32_t discrete) {
     // Unused
 }
 
@@ -222,34 +216,27 @@ struct wl_pointer_listener pointer_listener = {
         .axis_discrete = wl_pointer_axis_discrete,
 };
 
-static void wl_keyboard_keymap(void *data, struct wl_keyboard *wl_keyboard,
-                               uint32_t format, int32_t fd, uint32_t size) {
+static void wl_keyboard_keymap([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t format, [[maybe_unused]] int32_t fd, [[maybe_unused]] uint32_t size) {
     // Who cares
 }
 
-static void wl_keyboard_enter(void *data, struct wl_keyboard *wl_keyboard,
-                              uint32_t serial, struct wl_surface *surface, struct wl_array *keys) {
-    std::cout << "Keyboard enter\n";
-}
-
-static void wl_keyboard_leave(void *data, struct wl_keyboard *wl_keyboard,
-                              uint32_t serial, struct wl_surface *surface) {
-    std::cout << "Keyboard leave\n";
-}
-
-static void wl_keyboard_key(void *data, struct wl_keyboard *wl_keyboard,
-                            uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {
-    printf("Key event: %d %d\n", key, state);
-}
-
-static void wl_keyboard_modifiers(void *data, struct wl_keyboard *wl_keyboard,
-                                  uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched,
-                                  uint32_t mods_locked, uint32_t group) {
+static void wl_keyboard_enter([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface, [[maybe_unused]] struct wl_array *keys) {
     // Who cares
 }
 
-static void wl_keyboard_repeat_info(void *data, struct wl_keyboard *wl_keyboard,
-                                    int32_t rate, int32_t delay) {
+static void wl_keyboard_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
+    // Who cares
+}
+
+static void wl_keyboard_key([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t key, [[maybe_unused]] uint32_t state) {
+    // Actually might be useful
+}
+
+static void wl_keyboard_modifiers([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t mods_depressed, [[maybe_unused]] uint32_t mods_latched, [[maybe_unused]] uint32_t mods_locked, [[maybe_unused]] uint32_t group) {
+    // Who cares
+}
+
+static void wl_keyboard_repeat_info([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] int32_t rate, [[maybe_unused]] int32_t delay) {
     // Who cares
 }
 
@@ -283,8 +270,7 @@ const struct wl_seat_listener seat_listener = {
         .name = seat_handle_name,
 };
 
-static void handle_global(void *data, struct wl_registry *registry,
-                          uint32_t name, const char *interface, uint32_t version) {
+static void handle_global([[maybe_unused]] void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version) {
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         compositor = static_cast<wl_compositor *>(wl_registry_bind(registry, name,
                                                                    &wl_compositor_interface, 1));
@@ -305,17 +291,13 @@ static void handle_global(void *data, struct wl_registry *registry,
                                                        &wl_seat_interface, 1));
         wl_seat_add_listener(seat, &seat_listener, nullptr);
     } else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
-        layer_shell = static_cast<zwlr_layer_shell_v1 *>(wl_registry_bind(registry, name,
-                                                                          &zwlr_layer_shell_v1_interface,
-                                                                          version < 4 ? version : 4));
+        layer_shell = static_cast<zwlr_layer_shell_v1 *>(wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, version < 4 ? version : 4));
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-        xdg_wm_base = static_cast<struct xdg_wm_base *>(wl_registry_bind(
-                registry, name, &xdg_wm_base_interface, 1));
+        xdg_wm_base = static_cast<struct xdg_wm_base *>(wl_registry_bind(registry, name, &xdg_wm_base_interface, 1));
     }
 }
 
-static void handle_global_remove(void *data, struct wl_registry *registry,
-                                 uint32_t name) {
+static void handle_global_remove([[maybe_unused]] void *data, [[maybe_unused]] struct wl_registry *registry, [[maybe_unused]] uint32_t name) {
     // who cares
 }
 
@@ -324,7 +306,7 @@ static const struct wl_registry_listener registry_listener = {
         .global_remove = handle_global_remove,
 };
 
-int main(int argc, char **argv) {
+int main() {
     const char* wlrNamespace = "wlroots";
 
     display = wl_display_connect(nullptr);

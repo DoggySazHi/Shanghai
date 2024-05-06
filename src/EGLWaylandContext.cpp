@@ -116,7 +116,7 @@ EGLSurface EGLWaylandContext::createSurface(wl_egl_window* window) {
     return createPlatformWindowSurfaceExt(display, config, window, nullptr);
 }
 
-void EGLWaylandContext::destroySurface(wl_egl_window *window, EGLSurface eglSurface) {
+void EGLWaylandContext::destroySurface(EGLSurface eglSurface) {
     eglDestroySurface(display, eglSurface);
 }
 
