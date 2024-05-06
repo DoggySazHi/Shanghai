@@ -52,6 +52,8 @@ SET(SHANGHAI_SOURCE
         src/main.cpp
         src/EGLWaylandContext.cpp
         src/EGLWaylandContext.h
+        src/Shader.cpp
+        src/Shader.h
 )
 
 add_executable(Shanghai
@@ -70,3 +72,4 @@ target_link_libraries(Shanghai
 )
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/img DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shader DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

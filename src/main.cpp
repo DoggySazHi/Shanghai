@@ -1,21 +1,18 @@
 #include <iostream>
 
-#include <linux/input-event-codes.h>
 #include <cassert>
 #include <GLES2/gl2.h>
 #include <cstring>
-#include <ctime>
-#include <unistd.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <wayland-egl.h>
-#include <wlr/util/log.h>
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-shell-client-protocol.h"
 #include "EGLWaylandContext.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "Shader.h"
 
 static struct wl_display *display;
 static struct wl_compositor *compositor;
@@ -33,25 +30,17 @@ struct wl_surface *wl_surface;
 struct wl_egl_window *egl_window;
 struct wlr_egl_surface *egl_surface;
 struct wl_callback *frame_callback;
-
 static uint32_t output = UINT32_MAX;
-struct xdg_popup *popup;
-struct wl_surface *popup_wl_surface;
-struct wl_egl_window *popup_egl_window;
-static uint32_t popup_width = 256, popup_height = 256;
-struct wlr_egl_surface *popup_egl_surface;
-struct wl_callback *popup_frame_callback;
-float popup_alpha = 1.0, popup_red = 0.5f;
 
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
-static uint32_t anchor = 0;
+static uint32_t anchor = 0 | ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
 static uint32_t width = 128, height = 128;
 static int32_t margin_top = 0;
+static int32_t margin_bottom = 0;
 static double alpha = 1.0;
 static bool run_display = true;
 static bool animate = false;
-static enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive =
-        ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
+static enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
 static double frame = 0;
 static int cur_x = -1, cur_y = -1;
 static int buttons = 0;
@@ -66,29 +55,9 @@ int textureIndex = 0;
 
 EGLWaylandContext* eglWaylandContext;
 
-unsigned int shaderProgram;
-const char *vertexShaderSource = "#version 320 es\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "layout (location = 1) in vec2 aTexCoord;\n"
-                                 "precision mediump float;\n"
-                                 "out vec2 TexCoord;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "   TexCoord = aTexCoord;\n"
-                                 "}\0";
-const char *fragmentShaderSource = "#version 320 es\n"
-                                   "precision mediump float;\n"
-                                   "out vec4 FragColor;\n"
-                                   "in vec2 TexCoord;\n"
-                                   "uniform sampler2D texture2;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = texture(texture2, TexCoord);\n"
-                                   "}\n\0";
+Shader* shader;
 
 static void draw();
-static void draw_popup();
 
 static void surface_frame_callback(
         void *data, struct wl_callback *cb, uint32_t time) {
@@ -101,23 +70,10 @@ static struct wl_callback_listener frame_listener = {
         .done = surface_frame_callback
 };
 
-static void popup_surface_frame_callback(
-        void *data, struct wl_callback *cb, uint32_t time) {
-    wl_callback_destroy(cb);
-    popup_frame_callback = nullptr;
-    if (popup) {
-        draw_popup();
-    }
-}
-
-static struct wl_callback_listener popup_frame_listener = {
-        .done = popup_surface_frame_callback
-};
-
 static void draw() {
     eglWaylandContext->makeCurrent(egl_surface);
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, (int) width, (int) height);
     if (buttons) {
         // Do something, idk
         textureIndex = (textureIndex + 1) % TEXTURE_COUNT;
@@ -128,31 +84,33 @@ static void draw() {
 
     if (cur_x != -1 && cur_y != -1) {
         glEnable(GL_SCISSOR_TEST);
-        glScissor(cur_x, height - cur_y, 5, 5);
+        glScissor(cur_x, (int) (height - cur_y), 5, 5);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_SCISSOR_TEST);
     }
 
-    glUseProgram(shaderProgram);
+    shader->use();
 
+    // Packed as [x, y, u, v]
+    // Renders a square
     static const GLfloat vertices[] = {
-            -1.0, -1.0, 0.0, 0.0, 0.0,
-            1.0, -1.0, 0.0, 1.0, 0.0,
-            1.0, 1.0, 0.0, 1.0, 1.0,
-            1.0, 1.0, 0.0, 1.0, 1.0,
-            -1.0, 1.0, 0.0, 0.0, 1.0,
-            -1.0, -1.0, 0.0, 0.0, 0.0,
+            -1.0, -1.0, 0.0, 0.0,
+            1.0, -1.0, 1.0, 0.0,
+            1.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0,
+            -1.0, 1.0, 0.0, 1.0,
+            -1.0, -1.0, 0.0, 0.0,
     };
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), vertices);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), vertices + 3);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
     glEnableVertexAttribArray(1);
 
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 0);
+    shader->setUniform("texture2", 0);
     glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -161,28 +119,9 @@ static void draw() {
     glDisableVertexAttribArray(1);
 
     frame_callback = wl_surface_frame(wl_surface);
-    wl_callback_add_listener(frame_callback, &frame_listener, NULL);
+    wl_callback_add_listener(frame_callback, &frame_listener, nullptr);
 
     eglWaylandContext->swapBuffers(egl_surface);
-}
-
-static void draw_popup() {
-    static float alpha_mod = -0.01;
-
-    eglWaylandContext->makeCurrent(popup_egl_surface);
-    glViewport(0, 0, popup_width, popup_height);
-    glClearColor(popup_red, 0.5f, 0.5f, popup_alpha);
-    popup_alpha += alpha_mod;
-    if (popup_alpha < 0.01 || popup_alpha >= 1.0f) {
-        alpha_mod *= -1.0;
-    }
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    popup_frame_callback = wl_surface_frame(popup_wl_surface);
-    assert(popup_frame_callback);
-    wl_callback_add_listener(popup_frame_callback, &popup_frame_listener, NULL);
-    eglWaylandContext->swapBuffers(popup_egl_surface);
-    wl_surface_commit(popup_wl_surface);
 }
 
 static void xdg_surface_handle_configure(void *data,
@@ -194,84 +133,14 @@ static const struct xdg_surface_listener xdg_surface_listener = {
         .configure = xdg_surface_handle_configure,
 };
 
-static void xdg_popup_configure(void *data, struct xdg_popup *xdg_popup,
-                                int32_t x, int32_t y, int32_t width, int32_t height) {
-    printf("Popup configured %dx%d@%d,%d\n", width, height, x, y);
-    popup_width = width;
-    popup_height = height;
-    if (popup_egl_window) {
-        wl_egl_window_resize(popup_egl_window, width, height, 0, 0);
-    }
-}
-
-static void popup_destroy() {
-    eglWaylandContext->destroySurface(popup_egl_window, popup_egl_surface);
-    wl_egl_window_destroy(popup_egl_window);
-    xdg_popup_destroy(popup);
-    wl_surface_destroy(popup_wl_surface);
-    popup_wl_surface = NULL;
-    popup = NULL;
-    popup_egl_window = NULL;
-}
-
-static void xdg_popup_done(void *data, struct xdg_popup *xdg_popup) {
-    std::cout << "Popup done\n";
-    popup_destroy();
-}
-
-static const struct xdg_popup_listener xdg_popup_listener = {
-        .configure = xdg_popup_configure,
-        .popup_done = xdg_popup_done,
-};
-
-static void create_popup(uint32_t serial) {
-    if (popup) {
-        return;
-    }
-    struct wl_surface *surface = wl_compositor_create_surface(compositor);
-    assert(xdg_wm_base && surface);
-    struct xdg_surface *xdg_surface =
-            xdg_wm_base_get_xdg_surface(xdg_wm_base, surface);
-    struct xdg_positioner *xdg_positioner =
-            xdg_wm_base_create_positioner(xdg_wm_base);
-    assert(xdg_surface && xdg_positioner);
-
-    xdg_positioner_set_size(xdg_positioner, popup_width, popup_height);
-    xdg_positioner_set_offset(xdg_positioner, 0, 0);
-    xdg_positioner_set_anchor_rect(xdg_positioner, cur_x, cur_y, 1, 1);
-    xdg_positioner_set_anchor(xdg_positioner, XDG_POSITIONER_ANCHOR_BOTTOM_RIGHT);
-
-    popup = xdg_surface_get_popup(xdg_surface, NULL, xdg_positioner);
-    xdg_popup_grab(popup, seat, serial);
-
-    assert(popup);
-
-    zwlr_layer_surface_v1_get_popup(layer_surface, popup);
-
-    xdg_surface_add_listener(xdg_surface, &xdg_surface_listener, NULL);
-    xdg_popup_add_listener(popup, &xdg_popup_listener, NULL);
-
-    wl_surface_commit(surface);
-    wl_display_roundtrip(display);
-
-    xdg_positioner_destroy(xdg_positioner);
-
-    popup_wl_surface = surface;
-    popup_egl_window = wl_egl_window_create(surface, popup_width, popup_height);
-    assert(popup_egl_window);
-    popup_egl_surface = static_cast<wlr_egl_surface *>(eglWaylandContext->createSurface(popup_egl_window));
-    assert(popup_egl_surface != EGL_NO_SURFACE);
-    draw_popup();
-}
-
-static void layer_surface_configure(void *data,
-                                    struct zwlr_layer_surface_v1 *surface,
-                                    uint32_t serial, uint32_t w, uint32_t h) {
+static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h) {
     width = w;
     height = h;
+
     if (egl_window) {
-        wl_egl_window_resize(egl_window, width, height, 0, 0);
+        wl_egl_window_resize(egl_window, (int) width, (int) height, 0, 0);
     }
+
     zwlr_layer_surface_v1_ack_configure(surface, serial);
 }
 
@@ -288,90 +157,57 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
         .closed = layer_surface_closed,
 };
 
-static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer,
-                             uint32_t serial, struct wl_surface *surface,
-                             wl_fixed_t surface_x, wl_fixed_t surface_y) {
+static void wl_pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t surface_x, wl_fixed_t surface_y) {
     struct wl_cursor_image *image;
-    if (surface == popup_wl_surface) {
-        image = popup_cursor_image;
-    } else {
-        image = cursor_image;
-    }
-    wl_surface_attach(cursor_surface,
-                      wl_cursor_image_get_buffer(image), 0, 0);
-    wl_surface_damage(cursor_surface, 1, 0,
-                      image->width, image->height);
+    image = cursor_image;
+    wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
+    wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
-    wl_pointer_set_cursor(wl_pointer, serial, cursor_surface,
-                          image->hotspot_x, image->hotspot_y);
+    wl_pointer_set_cursor(wl_pointer, serial, cursor_surface, (int) image->hotspot_x, (int) image->hotspot_y);
     input_surface = surface;
 }
 
-static void wl_pointer_leave(void *data, struct wl_pointer *wl_pointer,
-                             uint32_t serial, struct wl_surface *surface) {
+static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
     cur_x = cur_y = -1;
     buttons = 0;
 }
 
-static void wl_pointer_motion(void *data, struct wl_pointer *wl_pointer,
-                              uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {
+static void wl_pointer_motion([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {
     cur_x = wl_fixed_to_int(surface_x);
     cur_y = wl_fixed_to_int(surface_y);
 }
 
-static void wl_pointer_button(void *data, struct wl_pointer *wl_pointer,
-                              uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
+static void wl_pointer_button([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t button, uint32_t state) {
     if (input_surface == wl_surface) {
         if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-            if (button == BTN_RIGHT) {
-                if (popup_wl_surface) {
-                    popup_destroy();
-                } else {
-                    create_popup(serial);
-                }
-            } else {
-                buttons++;
-            }
-        } else {
-            if (button != BTN_RIGHT) {
-                buttons--;
-            }
-        }
-    } else if (input_surface == popup_wl_surface) {
-        if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-            if (button == BTN_LEFT && popup_red <= 0.9f) {
-                popup_red += 0.1;
-            } else if (button == BTN_RIGHT && popup_red >= 0.1f) {
-                popup_red -= 0.1;
-            }
+            // button == BTN_RIGHT
+            buttons++;
+        } else { // On release
+            buttons--;
         }
     } else {
         assert(false && "Unknown surface");
     }
 }
 
-static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
-                            uint32_t time, uint32_t axis, wl_fixed_t value) {
-    // Who cares
+static void wl_pointer_axis(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {
+    // Unused
 }
 
 static void wl_pointer_frame(void *data, struct wl_pointer *wl_pointer) {
-    // Who cares
+    // Unused
 }
 
-static void wl_pointer_axis_source(void *data, struct wl_pointer *wl_pointer,
-                                   uint32_t axis_source) {
-    // Who cares
+static void wl_pointer_axis_source(void *data, struct wl_pointer *wl_pointer, uint32_t axis_source) {
+    // Unused
 }
 
-static void wl_pointer_axis_stop(void *data, struct wl_pointer *wl_pointer,
-                                 uint32_t time, uint32_t axis) {
-    // Who cares
+static void wl_pointer_axis_stop(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis) {
+    // Unused
 }
 
-static void wl_pointer_axis_discrete(void *data, struct wl_pointer *wl_pointer,
-                                     uint32_t axis, int32_t discrete) {
-    // Who cares
+static void wl_pointer_axis_discrete(void *data, struct wl_pointer *wl_pointer, uint32_t axis, int32_t discrete) {
+    // Unused
 }
 
 struct wl_pointer_listener pointer_listener = {
@@ -426,20 +262,19 @@ static struct wl_keyboard_listener keyboard_listener = {
         .repeat_info = wl_keyboard_repeat_info,
 };
 
-static void seat_handle_capabilities(void *data, struct wl_seat *wl_seat,
-                                     uint32_t caps) {
+static void seat_handle_capabilities([[maybe_unused]] void *data, struct wl_seat *wl_seat, uint32_t caps) {
     if ((caps & WL_SEAT_CAPABILITY_POINTER)) {
         pointer = wl_seat_get_pointer(wl_seat);
-        wl_pointer_add_listener(pointer, &pointer_listener, NULL);
+        wl_pointer_add_listener(pointer, &pointer_listener, nullptr);
     }
+
     if ((caps & WL_SEAT_CAPABILITY_KEYBOARD)) {
         keyboard = wl_seat_get_keyboard(wl_seat);
-        wl_keyboard_add_listener(keyboard, &keyboard_listener, NULL);
+        wl_keyboard_add_listener(keyboard, &keyboard_listener, nullptr);
     }
 }
 
-static void seat_handle_name(void *data, struct wl_seat *wl_seat,
-                             const char *name) {
+static void seat_handle_name([[maybe_unused]] void *data, [[maybe_unused]] struct wl_seat *wl_seat, [[maybe_unused]] const char *name) {
     // Who cares
 }
 
@@ -468,7 +303,7 @@ static void handle_global(void *data, struct wl_registry *registry,
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
         seat = static_cast<wl_seat *>(wl_registry_bind(registry, name,
                                                        &wl_seat_interface, 1));
-        wl_seat_add_listener(seat, &seat_listener, NULL);
+        wl_seat_add_listener(seat, &seat_listener, nullptr);
     } else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
         layer_shell = static_cast<zwlr_layer_shell_v1 *>(wl_registry_bind(registry, name,
                                                                           &zwlr_layer_shell_v1_interface,
@@ -491,227 +326,84 @@ static const struct wl_registry_listener registry_listener = {
 
 int main(int argc, char **argv) {
     const char* wlrNamespace = "wlroots";
-    int exclusive_zone = 0;
-    int32_t margin_right = 0, margin_bottom = 0, margin_left = 0;
-    bool found;
-    int c;
-    while ((c = getopt(argc, argv, "k:nw:h:o:l:a:x:m:t:")) != -1) {
-        switch (c) {
-            case 'o':
-                output = atoi(optarg);
-                break;
-            case 'w':
-                width = atoi(optarg);
-                break;
-            case 'h':
-                height = atoi(optarg);
-                break;
-            case 'x':
-                exclusive_zone = atoi(optarg);
-                break;
-            case 'l': {
-                struct {
-                    const char *name;
-                    enum zwlr_layer_shell_v1_layer value;
-                } layers[] = {
-                        { "background", ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND },
-                        { "bottom", ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM },
-                        { "top", ZWLR_LAYER_SHELL_V1_LAYER_TOP },
-                        { "overlay", ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY },
-                };
-                found = false;
-                for (size_t i = 0; i < sizeof(layers) / sizeof(layers[0]); ++i) {
-                    printf("%d layer %s\n", i, layers[i].name);
-                    if (strcmp(optarg, layers[i].name) == 0) {
-                        layer = layers[i].value;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    fprintf(stderr, "invalid layer %s\n", optarg);
-                    return 1;
-                }
-                break;
-            }
-            case 'a': {
-                struct {
-                    const char *name;
-                    uint32_t value;
-                } anchors[] = {
-                        { "top", ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP },
-                        { "bottom", ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM },
-                        { "left", ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT },
-                        { "right", ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT },
-                };
-                found = false;
-                for (size_t i = 0; i < sizeof(anchors) / sizeof(anchors[0]); ++i) {
-                    if (strcmp(optarg, anchors[i].name) == 0) {
-                        anchor |= anchors[i].value;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    fprintf(stderr, "invalid anchor %s\n", optarg);
-                    return 1;
-                }
-                break;
-            }
-            case 't':
-                alpha = atof(optarg);
-                break;
-            case 'm': {
-                char *endptr = optarg;
-                margin_top = strtol(endptr, &endptr, 10);
-                assert(*endptr == ',');
-                margin_right = strtol(endptr + 1, &endptr, 10);
-                assert(*endptr == ',');
-                margin_bottom = strtol(endptr + 1, &endptr, 10);
-                assert(*endptr == ',');
-                margin_left = strtol(endptr + 1, &endptr, 10);
-                assert(!*endptr);
-                break;
-            }
-            case 'n':
-                animate = true;
-                break;
-            case 'k': {
-                const struct {
-                    const char *name;
-                    enum zwlr_layer_surface_v1_keyboard_interactivity value;
-                } kb_int[] = {
-                        { "none", ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE },
-                        { "exclusive", ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE },
-                        { "on_demand", ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_ON_DEMAND }
-                };
-                found = false;
-                for (size_t i = 0; i < sizeof(kb_int) / sizeof(kb_int[0]); ++i) {
-                    if (strcmp(optarg, kb_int[i].name) == 0) {
-                        keyboard_interactive = kb_int[i].value;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    fprintf(stderr, "invalid keyboard interactivity setting %s\n", optarg);
-                    return 1;
-                }
-                break;
-            }
-            default:
-                break;
-        }
-    }
 
-    display = wl_display_connect(NULL);
-    if (display == NULL) {
+    display = wl_display_connect(nullptr);
+    if (display == nullptr) {
         fprintf(stderr, "Failed to create display\n");
         return 1;
     }
 
     struct wl_registry *registry = wl_display_get_registry(display);
-    wl_registry_add_listener(registry, &registry_listener, NULL);
+    wl_registry_add_listener(registry, &registry_listener, nullptr);
     wl_display_roundtrip(display);
 
-    if (compositor == NULL) {
-        fprintf(stderr, "wl_compositor not available\n");
+    if (compositor == nullptr) {
+        std::cerr << "wl_compositor not available; are you using X11?\n";
         return 1;
     }
-    if (shm == NULL) {
-        fprintf(stderr, "wl_shm not available\n");
+    if (shm == nullptr) {
+        std::cerr << "wl_shm not available; are you using X11?\n";
         return 1;
     }
-    if (layer_shell == NULL) {
-        fprintf(stderr, "layer_shell not available\n");
+    if (layer_shell == nullptr) {
+        std::cerr << "layer_shell not available; cannot render without layering support\n";
         return 1;
     }
 
-    struct wl_cursor_theme *cursor_theme =
-            wl_cursor_theme_load(NULL, 16, shm);
+    // Cursor when you hover over Shanghai
+    struct wl_cursor_theme *cursor_theme = wl_cursor_theme_load(nullptr, 16, shm);
     assert(cursor_theme);
-    struct wl_cursor *cursor =
-            wl_cursor_theme_get_cursor(cursor_theme, "crosshair");
-    if (cursor == NULL) {
+    struct wl_cursor *cursor = wl_cursor_theme_get_cursor(cursor_theme, "pointer");
+    if (cursor == nullptr) {
         cursor = wl_cursor_theme_get_cursor(cursor_theme, "left_ptr");
     }
     assert(cursor);
     cursor_image = cursor->images[0];
 
-    cursor = wl_cursor_theme_get_cursor(cursor_theme, "tcross");
-    if (cursor == NULL) {
-        cursor = wl_cursor_theme_get_cursor(cursor_theme, "left_ptr");
-    }
-    assert(cursor);
-    popup_cursor_image = cursor->images[0];
-
     cursor_surface = wl_compositor_create_surface(compositor);
     assert(cursor_surface);
 
+    // EGL renderer for Shanghai
     eglWaylandContext = new EGLWaylandContext(display);
 
     wl_surface = wl_compositor_create_surface(compositor);
     assert(wl_surface);
 
+    // Set layer properties
     layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell, wl_surface, wl_output, layer, wlrNamespace);
     assert(layer_surface);
     zwlr_layer_surface_v1_set_size(layer_surface, width, height);
     zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
-    zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, exclusive_zone);
-    zwlr_layer_surface_v1_set_margin(layer_surface,
-                                     margin_top, margin_right, margin_bottom, margin_left);
-    zwlr_layer_surface_v1_set_keyboard_interactivity(
-            layer_surface, keyboard_interactive);
-    zwlr_layer_surface_v1_add_listener(layer_surface,
-                                       &layer_surface_listener, layer_surface);
+    zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, 0);
+    zwlr_layer_surface_v1_set_margin(layer_surface, margin_top, 0, margin_bottom, 0);
+    zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, keyboard_interactive);
+    zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, layer_surface);
     wl_surface_commit(wl_surface);
     wl_display_roundtrip(display);
 
-    egl_window = wl_egl_window_create(wl_surface, width, height);
+    // Set up XDG surface
+    egl_window = wl_egl_window_create(wl_surface, (int) width, (int) height);
     assert(egl_window);
     egl_surface = static_cast<wlr_egl_surface*>(eglWaylandContext->createSurface(egl_window));
     assert(egl_surface != EGL_NO_SURFACE);
 
     wl_display_roundtrip(display);
 
+    // Preparing our GL context
     eglWaylandContext->makeCurrent(egl_surface);
 
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    std::cout << "OpenGL version: " << glGetString(GL_VERSION) << '\n';
+    std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << '\n';
+    std::cout << "OpenGL vendor: " << glGetString(GL_VENDOR) << '\n';
+    std::cout << "OpenGL shading language version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n\n";
 
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
+    if (!shader->isCompiled()) {
+        std::cerr << "Failed to compile shader\n";
+        return 1;
     }
 
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    std::cout << "Loading textures...\n";
 
     glGenTextures(TEXTURE_COUNT, textures);
     for (int i = 0; i < TEXTURE_COUNT; i++) {
@@ -736,6 +428,10 @@ int main(int argc, char **argv) {
         }
         stbi_image_free(data);
     }
+
+    std::cout << "Loaded " << TEXTURE_COUNT << " textures\n";
+
+    std::cout << "Starting display...\n";
 
     draw();
 

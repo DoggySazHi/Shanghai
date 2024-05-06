@@ -72,14 +72,14 @@ bool EGLWaylandContext::init(wl_display* waylandDisplay) {
     }
 
     if (matched == 0) {
-        fprintf(stderr, "Failed to match an EGL config\n");
+        std::cerr << "Failed to match an EGL config\n";
         finish();
         return false;
     }
 
     context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttributes);
     if (context == EGL_NO_CONTEXT) {
-        fprintf(stderr, "Failed to create EGL context\n");
+        std::cerr << "Failed to create EGL context\n";
         finish();
         return false;
     }
