@@ -45,13 +45,12 @@ static int buttons = 0;
 struct wl_cursor_image *cursor_image;
 struct wl_surface *cursor_surface, *input_surface;
 
+EGLWaylandContext* eglWaylandContext;
+Shader* shader;
+
 #define TEXTURE_COUNT 46
 GLuint textures[TEXTURE_COUNT];
 int textureIndex = 0;
-
-EGLWaylandContext* eglWaylandContext;
-
-Shader* shader;
 
 static void draw();
 
@@ -272,23 +271,19 @@ const struct wl_seat_listener seat_listener = {
 
 static void handle_global([[maybe_unused]] void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version) {
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
-        compositor = static_cast<wl_compositor *>(wl_registry_bind(registry, name,
-                                                                   &wl_compositor_interface, 1));
+        compositor = static_cast<wl_compositor *>(wl_registry_bind(registry, name, &wl_compositor_interface, 1));
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-        shm = static_cast<wl_shm *>(wl_registry_bind(registry, name,
-                                                     &wl_shm_interface, 1));
+        shm = static_cast<wl_shm *>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
     } else if (strcmp(interface, "wl_output") == 0) {
         if (output != UINT32_MAX) {
             if (!wl_output) {
-                wl_output = static_cast<struct wl_output *>(wl_registry_bind(registry, name,
-                                                                      &wl_output_interface, 1));
+                wl_output = static_cast<struct wl_output *>(wl_registry_bind(registry, name, &wl_output_interface, 1));
             } else {
                 output--;
             }
         }
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-        seat = static_cast<wl_seat *>(wl_registry_bind(registry, name,
-                                                       &wl_seat_interface, 1));
+        seat = static_cast<wl_seat *>(wl_registry_bind(registry, name, &wl_seat_interface, 1));
         wl_seat_add_listener(seat, &seat_listener, nullptr);
     } else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
         layer_shell = static_cast<zwlr_layer_shell_v1 *>(wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, version < 4 ? version : 4));
