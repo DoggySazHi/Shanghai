@@ -58,6 +58,8 @@ SET(SHANGHAI_SOURCE
         src/Shanghai.h
         src/keyboard.h
         src/pointer.h
+        src/ShanghaiStateMachine.cpp
+        src/ShanghaiStateMachine.h
 )
 
 add_executable(Shanghai
