@@ -13,6 +13,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "Shader.h"
+#include "Shanghai.h"
+#include "keyboard.h"
+#include "pointer.h"
 
 static struct wl_display *display;
 static struct wl_compositor *compositor;
@@ -34,23 +37,19 @@ static uint32_t output = UINT32_MAX;
 
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
 static uint32_t anchor = 0 | ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
-static uint32_t width = 128, height = 128;
+static uint32_t width = 0, height = 0; // Wayland will resize to full screen
 static int32_t margin_top = 0;
 static int32_t margin_bottom = 0;
 static bool run_display = true;
 static enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
-static int cur_x = -1, cur_y = -1;
-static int buttons = 0;
+int cur_x = -1, cur_y = -1;
+int buttons = 0;
 
 struct wl_cursor_image *cursor_image;
 struct wl_surface *cursor_surface, *input_surface;
 
 EGLWaylandContext* eglWaylandContext;
-Shader* shader;
-
-#define TEXTURE_COUNT 46
-GLuint textures[TEXTURE_COUNT];
-int textureIndex = 0;
+Shanghai* shanghai;
 
 static void draw();
 
@@ -69,8 +68,7 @@ static void draw() {
 
     glViewport(0, 0, (int) width, (int) height);
     if (buttons) {
-        // Do something, idk
-        textureIndex = (textureIndex + 1) % TEXTURE_COUNT;
+        shanghai->nextTexture();
     }
 
     glClearColor(0, 0, 0, 0.0f);
@@ -79,38 +77,12 @@ static void draw() {
     if (cur_x != -1 && cur_y != -1) {
         glEnable(GL_SCISSOR_TEST);
         glScissor(cur_x, (int) (height - cur_y), 5, 5);
-        glClearColor(0, 0, 0, 1);
+        glClearColor(0, 0, 0, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_SCISSOR_TEST);
     }
 
-    shader->use();
-
-    // Packed as [x, y, u, v]
-    // Renders a square
-    static const GLfloat vertices[] = {
-            -1.0, -1.0, 0.0, 0.0,
-            1.0, -1.0, 1.0, 0.0,
-            1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0,
-            -1.0, 1.0, 0.0, 1.0,
-            -1.0, -1.0, 0.0, 0.0,
-    };
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
-    glEnableVertexAttribArray(1);
-
-    glActiveTexture(GL_TEXTURE0);
-    shader->setUniform("texture2", 0);
-    glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    shanghai->draw();
 
     frame_callback = wl_surface_frame(wl_surface);
     wl_callback_add_listener(frame_callback, &frame_listener, nullptr);
@@ -130,6 +102,12 @@ static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_lay
     width = w;
     height = h;
 
+    std::cout << "Resizing window to " << width << "x" << height << '\n';
+
+    if (shanghai != nullptr) {
+        shanghai->setScreenGeometry(width, height);
+    }
+
     if (egl_window) {
         wl_egl_window_resize(egl_window, (int) width, (int) height, 0, 0);
     }
@@ -148,104 +126,6 @@ static void layer_surface_closed([[maybe_unused]] void *data, struct zwlr_layer_
 struct zwlr_layer_surface_v1_listener layer_surface_listener = {
         .configure = layer_surface_configure,
         .closed = layer_surface_closed,
-};
-
-static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, [[maybe_unused]] wl_fixed_t surface_x, [[maybe_unused]] wl_fixed_t surface_y) {
-    struct wl_cursor_image *image;
-    image = cursor_image;
-    wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
-    wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
-    wl_surface_commit(cursor_surface);
-    wl_pointer_set_cursor(wl_pointer, serial, cursor_surface, (int) image->hotspot_x, (int) image->hotspot_y);
-    input_surface = surface;
-}
-
-static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
-    cur_x = cur_y = -1;
-    buttons = 0;
-}
-
-static void wl_pointer_motion([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {
-    cur_x = wl_fixed_to_int(surface_x);
-    cur_y = wl_fixed_to_int(surface_y);
-}
-
-static void wl_pointer_button([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t button, uint32_t state) {
-    if (input_surface == wl_surface) {
-        if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
-            // button == BTN_RIGHT
-            buttons++;
-        } else { // On release
-            buttons--;
-        }
-    } else {
-        assert(false && "Unknown surface");
-    }
-}
-
-static void wl_pointer_axis([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t axis, [[maybe_unused]] wl_fixed_t value) {
-    // Unused
-}
-
-static void wl_pointer_frame([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer) {
-    // Unused
-}
-
-static void wl_pointer_axis_source([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t axis_source) {
-    // Unused
-}
-
-static void wl_pointer_axis_stop([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t axis) {
-    // Unused
-}
-
-static void wl_pointer_axis_discrete([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t axis, [[maybe_unused]] int32_t discrete) {
-    // Unused
-}
-
-struct wl_pointer_listener pointer_listener = {
-        .enter = wl_pointer_enter,
-        .leave = wl_pointer_leave,
-        .motion = wl_pointer_motion,
-        .button = wl_pointer_button,
-        .axis = wl_pointer_axis,
-        .frame = wl_pointer_frame,
-        .axis_source = wl_pointer_axis_source,
-        .axis_stop = wl_pointer_axis_stop,
-        .axis_discrete = wl_pointer_axis_discrete,
-};
-
-static void wl_keyboard_keymap([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t format, [[maybe_unused]] int32_t fd, [[maybe_unused]] uint32_t size) {
-    // Who cares
-}
-
-static void wl_keyboard_enter([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface, [[maybe_unused]] struct wl_array *keys) {
-    // Who cares
-}
-
-static void wl_keyboard_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
-    // Who cares
-}
-
-static void wl_keyboard_key([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t key, [[maybe_unused]] uint32_t state) {
-    // Actually might be useful
-}
-
-static void wl_keyboard_modifiers([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t mods_depressed, [[maybe_unused]] uint32_t mods_latched, [[maybe_unused]] uint32_t mods_locked, [[maybe_unused]] uint32_t group) {
-    // Who cares
-}
-
-static void wl_keyboard_repeat_info([[maybe_unused]] void *data, [[maybe_unused]] struct wl_keyboard *wl_keyboard, [[maybe_unused]] int32_t rate, [[maybe_unused]] int32_t delay) {
-    // Who cares
-}
-
-static struct wl_keyboard_listener keyboard_listener = {
-        .keymap = wl_keyboard_keymap,
-        .enter = wl_keyboard_enter,
-        .leave = wl_keyboard_leave,
-        .key = wl_keyboard_key,
-        .modifiers = wl_keyboard_modifiers,
-        .repeat_info = wl_keyboard_repeat_info,
 };
 
 static void seat_handle_capabilities([[maybe_unused]] void *data, struct wl_seat *wl_seat, uint32_t caps) {
@@ -374,39 +254,7 @@ int main() {
     std::cout << "OpenGL vendor: " << glGetString(GL_VENDOR) << '\n';
     std::cout << "OpenGL shading language version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n\n";
 
-    shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
-    if (!shader->isCompiled()) {
-        std::cerr << "Failed to compile shader\n";
-        return 1;
-    }
-
-    std::cout << "Loading textures...\n";
-
-    glGenTextures(TEXTURE_COUNT, textures);
-    for (int i = 0; i < TEXTURE_COUNT; i++) {
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        int imgWidth, imgHeight, nrChannels;
-        stbi_set_flip_vertically_on_load(true);
-        std::string path = "img/shime" + std::to_string(i + 1) + ".png";
-        unsigned char *data = stbi_load(path.c_str(), &imgWidth, &imgHeight, &nrChannels, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else
-        {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-        stbi_image_free(data);
-    }
-
-    std::cout << "Loaded " << TEXTURE_COUNT << " textures\n";
+    shanghai = new Shanghai();
 
     std::cout << "Starting display...\n";
 

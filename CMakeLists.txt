@@ -54,6 +54,10 @@ SET(SHANGHAI_SOURCE
         src/EGLWaylandContext.h
         src/Shader.cpp
         src/Shader.h
+        src/Shanghai.cpp
+        src/Shanghai.h
+        src/keyboard.h
+        src/pointer.h
 )
 
 add_executable(Shanghai
@@ -69,6 +73,12 @@ target_link_libraries(Shanghai
         EGL
         GLESv2
         wlroots
+)
+
+target_compile_definitions(Shanghai
+        PRIVATE
+        # If the debug configuration pass the DEBUG define to the compiler
+        $<$<CONFIG:Debug>:DEBUG>
 )
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/img DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

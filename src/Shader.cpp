@@ -33,6 +33,10 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath) {
     glDeleteShader(fragmentShader);
 }
 
+Shader::~Shader() {
+    glDeleteProgram(id);
+}
+
 void Shader::use() const {
     glUseProgram(id);
 }
@@ -76,4 +80,8 @@ GLuint Shader::compileShader(const char *shaderSource, GLenum shaderType) {
 
 void Shader::setUniform(const char *name, int value) const {
     glUniform1i(glGetUniformLocation(id, name), value);
+}
+
+void Shader::setUniform(const char *name, float a, float b) const {
+    glUniform2f(glGetUniformLocation(id, name), a, b);
 }
