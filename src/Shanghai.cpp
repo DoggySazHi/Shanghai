@@ -61,6 +61,8 @@ void Shanghai::draw() {
     glActiveTexture(GL_TEXTURE0);
     shader->setUniform("shanghaiTexture", 0);
     shader->setUniform("screenGeometry", (float) displayWidth, (float) displayHeight);
+    shader->setUniform("shanghaiPosition", positionX, positionY);
+    shader->setUniform("shanghaiHFlip", flip);
     glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -76,4 +78,13 @@ void Shanghai::nextTexture() {
 void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {
     displayWidth = width;
     displayHeight = height;
+}
+
+void Shanghai::setPos(float x, float y) {
+    positionX = x;
+    positionY = y;
+}
+
+void Shanghai::setFlip(bool isFlipped) {
+    flip = isFlipped;
 }

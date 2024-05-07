@@ -7,8 +7,10 @@
 extern struct wl_cursor_image *cursor_image;
 extern struct wl_surface *wl_surface;
 extern struct wl_surface *cursor_surface, *input_surface;
+extern uint32_t width, height;
 extern int cur_x, cur_y;
 extern int buttons;
+extern Shanghai* shanghai;
 
 static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, [[maybe_unused]] wl_fixed_t surface_x, [[maybe_unused]] wl_fixed_t surface_y) {
     struct wl_cursor_image *image;
@@ -36,6 +38,9 @@ static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struc
 static void wl_pointer_motion([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {
     cur_x = wl_fixed_to_int(surface_x);
     cur_y = wl_fixed_to_int(surface_y);
+
+    float h2 = (float) height / 2.0f;
+    shanghai->setPos((float) cur_x - 64.0f, h2 - ((float) cur_y - h2) - 64.0f);
 }
 
 static void wl_pointer_button([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] uint32_t time, [[maybe_unused]] uint32_t button, uint32_t state) {

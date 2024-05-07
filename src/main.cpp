@@ -37,7 +37,7 @@ static uint32_t output = UINT32_MAX;
 
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
 static uint32_t anchor = 0 | ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
-static uint32_t width = 0, height = 0; // Wayland will resize to full screen
+uint32_t width = 0, height = 0; // Wayland will resize to full screen
 static int32_t margin_top = 0;
 static int32_t margin_bottom = 0;
 static bool run_display = true;
