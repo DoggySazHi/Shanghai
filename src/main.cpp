@@ -68,9 +68,6 @@ static void draw() {
     eglWaylandContext->makeCurrent(egl_surface);
 
     glViewport(0, 0, (int) eglState.width, (int) eglState.height);
-    if (eglState.buttons) {
-        shanghai->nextTexture();
-    }
 
     glClearColor(0, 0, 0, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
