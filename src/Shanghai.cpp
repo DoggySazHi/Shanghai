@@ -32,13 +32,19 @@ Shanghai::Shanghai() {
         }
         stbi_image_free(data);
     }
+
+    stateMachine = new ShanghaiStateMachine();
 }
 
 Shanghai::~Shanghai() {
     delete shader;
+    glDeleteTextures(SHANGHAI_TEXTURE_COUNT, textures);
+    delete stateMachine;
 }
 
-void Shanghai::draw() {
+void Shanghai::draw(EGLState* state) {
+    stateMachine->frame(this, state);
+
     shader->use();
 
     // Packed as [x, y, u, v]
@@ -87,4 +93,17 @@ void Shanghai::setPos(float x, float y) {
 
 void Shanghai::setFlip(bool isFlipped) {
     flip = isFlipped;
+}
+
+void Shanghai::setTexture(int index) {
+    if (index < 0 || index >= SHANGHAI_TEXTURE_COUNT) {
+        throw std::runtime_error("Invalid texture index " + std::to_string(index) + " out of bounds 0-" + std::to_string(SHANGHAI_TEXTURE_COUNT - 1) + ".");
+    }
+
+    textureIndex = index;
+}
+
+// Gets the relative time in milliseconds
+uint64_t Shanghai::getTime() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }

@@ -60,6 +60,10 @@ SET(SHANGHAI_SOURCE
         src/pointer.h
         src/ShanghaiStateMachine.cpp
         src/ShanghaiStateMachine.h
+        src/states/ShanghaiStateMachineState.h
+        src/states/Idle.cpp
+        src/states/Idle.h
+        src/state.h
 )
 
 add_executable(Shanghai

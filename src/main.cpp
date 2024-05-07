@@ -12,11 +12,12 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "Shader.h"
 #include "Shanghai.h"
 #include "keyboard.h"
 #include "pointer.h"
+#include "state.h"
 
+// All Wayland runtime variables
 static struct wl_display *display;
 static struct wl_compositor *compositor;
 static struct wl_seat *seat;
@@ -37,18 +38,18 @@ static uint32_t output = UINT32_MAX;
 
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
 static uint32_t anchor = 0 | ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
-uint32_t width = 0, height = 0; // Wayland will resize to full screen
+ // Wayland will resize to full screen
 static int32_t margin_top = 0;
 static int32_t margin_bottom = 0;
 static bool run_display = true;
 static enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
-int cur_x = -1, cur_y = -1;
-int buttons = 0;
 
 struct wl_cursor_image *cursor_image;
 struct wl_surface *cursor_surface, *input_surface;
 
+// Stuff we care about
 EGLWaylandContext* eglWaylandContext;
+EGLState eglState;
 Shanghai* shanghai;
 
 static void draw();
@@ -66,23 +67,23 @@ static struct wl_callback_listener frame_listener = {
 static void draw() {
     eglWaylandContext->makeCurrent(egl_surface);
 
-    glViewport(0, 0, (int) width, (int) height);
-    if (buttons) {
+    glViewport(0, 0, (int) eglState.width, (int) eglState.height);
+    if (eglState.buttons) {
         shanghai->nextTexture();
     }
 
     glClearColor(0, 0, 0, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (cur_x != -1 && cur_y != -1) {
+    if (eglState.curX != -1 && eglState.curY != -1) {
         glEnable(GL_SCISSOR_TEST);
-        glScissor(cur_x, (int) (height - cur_y), 5, 5);
+        glScissor(eglState.curX, (int) (eglState.height - eglState.curY), 5, 5);
         glClearColor(0, 0, 0, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_SCISSOR_TEST);
     }
 
-    shanghai->draw();
+    shanghai->draw(&eglState);
 
     frame_callback = wl_surface_frame(wl_surface);
     wl_callback_add_listener(frame_callback, &frame_listener, nullptr);
@@ -99,17 +100,15 @@ static const struct xdg_surface_listener xdg_surface_listener = {
 };
 
 static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h) {
-    width = w;
-    height = h;
-
-    std::cout << "Resizing window to " << width << "x" << height << '\n';
+    eglState.width = w;
+    eglState.height = h;
 
     if (shanghai != nullptr) {
-        shanghai->setScreenGeometry(width, height);
+        shanghai->setScreenGeometry(eglState.width, eglState.height);
     }
 
     if (egl_window) {
-        wl_egl_window_resize(egl_window, (int) width, (int) height, 0, 0);
+        wl_egl_window_resize(egl_window, (int) eglState.width, (int) eglState.height, 0, 0);
     }
 
     zwlr_layer_surface_v1_ack_configure(surface, serial);
@@ -229,7 +228,7 @@ int main() {
     // Set layer properties
     layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell, wl_surface, wl_output, layer, wlrNamespace);
     assert(layer_surface);
-    zwlr_layer_surface_v1_set_size(layer_surface, width, height);
+    zwlr_layer_surface_v1_set_size(layer_surface, eglState.width, eglState.height);
     zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
     zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, 0);
     zwlr_layer_surface_v1_set_margin(layer_surface, margin_top, 0, margin_bottom, 0);
@@ -239,7 +238,7 @@ int main() {
     wl_display_roundtrip(display);
 
     // Set up XDG surface
-    egl_window = wl_egl_window_create(wl_surface, (int) width, (int) height);
+    egl_window = wl_egl_window_create(wl_surface, (int) eglState.width, (int) eglState.height);
     assert(egl_window);
     egl_surface = static_cast<wlr_egl_surface*>(eglWaylandContext->createSurface(egl_window));
     assert(egl_surface != EGL_NO_SURFACE);
