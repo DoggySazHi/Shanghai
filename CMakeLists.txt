@@ -10,7 +10,6 @@ add_custom_target(
             ${CMAKE_CURRENT_SOURCE_DIR}/include/marisa.h
             ${CMAKE_CURRENT_SOURCE_DIR}/include/sanae.h
             ${CMAKE_CURRENT_SOURCE_DIR}/include/youmu.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/yuyuko.h
 )
 
 # Create the header file for the layer shell protocol
