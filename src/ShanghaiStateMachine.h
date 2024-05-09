@@ -6,7 +6,7 @@
 #include "states/ShanghaiStateMachineState.h"
 
 enum class ShanghaiState {
-    IDLE,
+    STANDING,
     LOOKING,
     WALKING,
     SITTING,
@@ -34,7 +34,7 @@ public:
 
 private:
     uint32_t dragStartX = 0, dragStartY = 0;
-    ShanghaiState state = ShanghaiState::IDLE;
+    ShanghaiState state = ShanghaiState::WALKING;
     std::unordered_map<ShanghaiState, ShanghaiStateMachineState*> stateActions;
 
 };

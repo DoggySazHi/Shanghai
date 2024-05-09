@@ -77,22 +77,9 @@ void Shanghai::draw(EGLState* state) {
     glDisableVertexAttribArray(1);
 }
 
-void Shanghai::nextTexture() {
-    textureIndex = (textureIndex + 1) % SHANGHAI_TEXTURE_COUNT;
-}
-
 void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {
     displayWidth = width;
     displayHeight = height;
-}
-
-void Shanghai::setPos(float x, float y) {
-    positionX = x;
-    positionY = y;
-}
-
-void Shanghai::setFlip(bool isFlipped) {
-    flip = isFlipped;
 }
 
 void Shanghai::setTexture(int index) {

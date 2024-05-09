@@ -1,10 +1,11 @@
 #include "ShanghaiStateMachine.h"
-#include "states/Idle.h"
+#include "states/Standing.h"
+#include "states/Walking.h"
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
-    stateActions[ShanghaiState::IDLE] = new Idle();
+    stateActions[ShanghaiState::STANDING] = new Standing();
 //    stateActions[ShanghaiState::LOOKING] = new Looking();
-//    stateActions[ShanghaiState::WALKING] = new Walking();
+    stateActions[ShanghaiState::WALKING] = new Walking();
 //    stateActions[ShanghaiState::SITTING] = new Sitting();
 //    stateActions[ShanghaiState::CLIMBING] = new Climbing();
 //    stateActions[ShanghaiState::THROWING] = new Throwing();

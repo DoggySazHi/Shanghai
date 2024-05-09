@@ -61,9 +61,11 @@ SET(SHANGHAI_SOURCE
         src/ShanghaiStateMachine.cpp
         src/ShanghaiStateMachine.h
         src/states/ShanghaiStateMachineState.h
-        src/states/Idle.cpp
-        src/states/Idle.h
+        src/states/Standing.cpp
+        src/states/Standing.h
         src/state.h
+        src/states/Walking.cpp
+        src/states/Walking.h
 )
 
 add_executable(Shanghai
