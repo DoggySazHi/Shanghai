@@ -65,6 +65,10 @@ SET(SHANGHAI_SOURCE
         src/state.h
         src/states/Walking.cpp
         src/states/Walking.h
+        src/states/Sitting.cpp
+        src/states/Sitting.h
+        src/states/SittingAndLooking.cpp
+        src/states/SittingAndLooking.h
 )
 
 add_executable(Shanghai

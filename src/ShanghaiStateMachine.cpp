@@ -1,12 +1,16 @@
 #include "ShanghaiStateMachine.h"
 #include "states/Standing.h"
 #include "states/Walking.h"
+#include "states/Sitting.h"
+#include "states/SittingAndLooking.h"
+
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
     stateActions[ShanghaiState::STANDING] = new Standing();
 //    stateActions[ShanghaiState::LOOKING] = new Looking();
     stateActions[ShanghaiState::WALKING] = new Walking();
-//    stateActions[ShanghaiState::SITTING] = new Sitting();
+    stateActions[ShanghaiState::SITTING] = new Sitting();
+    stateActions[ShanghaiState::SITTING_AND_LOOKING] = new SittingAndLooking();
 //    stateActions[ShanghaiState::CLIMBING] = new Climbing();
 //    stateActions[ShanghaiState::THROWING] = new Throwing();
 //    stateActions[ShanghaiState::CHEERING] = new Cheering();

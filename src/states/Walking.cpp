@@ -21,9 +21,9 @@ void Walking::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* m
     }
 
     if (shanghai->flip) {
-        shanghai->positionX += WALK_STEP_DISTANCE;
+        shanghai->positionX += speed;
     } else {
-        shanghai->positionX += WALK_STEP_DISTANCE;
+        shanghai->positionX -= speed;
     }
 }
 
