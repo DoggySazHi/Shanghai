@@ -8,6 +8,7 @@
 #include "ShanghaiStateMachine.h"
 
 #define SHANGHAI_TEXTURE_COUNT 46
+#define SHANGHAI_TEXTURE_WIDTH 128
 
 // Forward declaration
 class ShanghaiStateMachine;

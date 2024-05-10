@@ -11,22 +11,12 @@ void SittingAndLooking::frame(EGLState* state, Shanghai *shanghai, ShanghaiState
     lastCycleTime = time;
     step = (step + 1) % 8;
 
-    if (step == 0) {
-        shanghai->setTexture(25);
-    } else if (step == 1) {
-        shanghai->setTexture(14);
-    } else if (step == 2) {
-        shanghai->setTexture(26);
-    } else if (step == 3) {
-        shanghai->setTexture(15);
-    } else if (step == 4) {
-        shanghai->setTexture(27);
-    } else if (step == 5) {
-        shanghai->setTexture(16);
-    } else if (step == 6) {
-        shanghai->setTexture(28);
-    } else if (step == 7) {
-        shanghai->setTexture(17);
+    if (step == 0 || step == 4) {
+        shanghai->setTexture(30);
+    } else if (step >= 1 && step <= 3) {
+        shanghai->setTexture(31);
+    } else if (step >= 5 && step <= 7) {
+        shanghai->setTexture(32);
     }
 }
 

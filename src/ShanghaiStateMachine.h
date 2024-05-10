@@ -7,10 +7,10 @@
 
 enum class ShanghaiState {
     STANDING,
-    LOOKING,
     WALKING,
     SITTING,
     SITTING_AND_LOOKING,
+    CRAWLING,
     CLIMBING,
     THROWING,
     CHEERING,
@@ -35,7 +35,7 @@ public:
 
 private:
     uint32_t dragStartX = 0, dragStartY = 0;
-    ShanghaiState state = ShanghaiState::SITTING_AND_LOOKING;
+    ShanghaiState state = ShanghaiState::CRAWLING;
     std::unordered_map<ShanghaiState, ShanghaiStateMachineState*> stateActions;
 
 };
