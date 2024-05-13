@@ -53,7 +53,7 @@ bool EGLWaylandContext::init(wl_display* waylandDisplay) {
 
     display = getPlatformDisplayExt(EGL_PLATFORM_WAYLAND_EXT, waylandDisplay, nullptr);
     if (display == EGL_NO_DISPLAY) {
-        std::cerr << "Failed to create EGL display\n";
+        std::cerr << "Failed to create EGL output\n";
         finish();
         return false;
     }
@@ -90,7 +90,7 @@ bool EGLWaylandContext::init(wl_display* waylandDisplay) {
 void EGLWaylandContext::finish() {
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 
-    // Terminate the display and context, if applicable (used also during errors)
+    // Terminate the output and context, if applicable (used also during errors)
     if (display != EGL_NO_DISPLAY) {
         if (context != EGL_NO_CONTEXT) {
             eglDestroyContext(display, context);

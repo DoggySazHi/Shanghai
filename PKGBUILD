@@ -7,7 +7,7 @@ pkgdesc="Putting Shanghai on your Wayland desktop"
 arch=("i686", "x86_64", "aarch64")
 url="https://github.com/DoggySazHi/Shanghai"
 depends=("wayland")
-makedepends=("cmake", "wayland-protocols", "ninja", "pkgconf")
+makedepends=("cmake", "wayland-protocols", "ninja", "pkgconf", "jsoncpp")
 license=("MIT")
 source=("https://github.com/DoggySazHi/Shanghai/archive/refs/heads/hourai.zip")
 

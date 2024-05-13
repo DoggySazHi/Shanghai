@@ -16,6 +16,7 @@
 #include "keyboard.h"
 #include "pointer.h"
 #include "state.h"
+#include "config/ShanghaiConfiguration.h"
 
 // All Wayland runtime variables
 static struct wl_display *display;
@@ -148,7 +149,6 @@ const struct wl_seat_listener seat_listener = {
 };
 
 static void handle_global([[maybe_unused]] void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version) {
-    std::cout << interface << '\n';
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         compositor = static_cast<wl_compositor *>(wl_registry_bind(registry, name, &wl_compositor_interface, 1));
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
@@ -180,9 +180,13 @@ static const struct wl_registry_listener registry_listener = {
 int main() {
     const char* wlrNamespace = "wlroots";
 
+    std::cout << "Loading configuration...\n";
+    auto* config = ShanghaiConfiguration::getInstance();
+    output = config->getOutput();
+
     display = wl_display_connect(nullptr);
     if (display == nullptr) {
-        fprintf(stderr, "Failed to create display\n");
+        fprintf(stderr, "Failed to create output\n");
         return 1;
     }
 
@@ -252,7 +256,7 @@ int main() {
 
     shanghai = new Shanghai();
 
-    std::cout << "Starting display...\n";
+    std::cout << "Starting output...\n";
 
     draw();
 

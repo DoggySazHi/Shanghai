@@ -122,7 +122,7 @@
         <request name="set_size">
             <description summary="sets the size of the surface">
                 Sets the size of the surface in surface-local coordinates. The
-                compositor will display the surface centered with respect to its
+                compositor will output the surface centered with respect to its
                 anchors.
 
                 If you pass 0 for either value, the compositor will assign it and
@@ -219,7 +219,7 @@
 
                     This is the default value, set for newly created layer shell surfaces.
 
-                    This is useful for e.g. desktop widgets that display information or
+                    This is useful for e.g. desktop widgets that output information or
                     only have interaction with non-keyboard input devices.
                 </description>
             </entry>

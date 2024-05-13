@@ -73,6 +73,8 @@ SET(SHANGHAI_SOURCE
         src/states/LieDown.h
         src/states/Crawling.cpp
         src/states/Crawling.h
+        src/config/ShanghaiConfiguration.cpp
+        src/config/ShanghaiConfiguration.h
 )
 
 add_executable(Shanghai
@@ -88,6 +90,7 @@ target_link_libraries(Shanghai
         EGL
         GLESv2
         wlroots
+        jsoncpp
 )
 
 target_compile_definitions(Shanghai

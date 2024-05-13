@@ -269,7 +269,7 @@ enum zwlr_layer_surface_v1_keyboard_interactivity {
 	 * This is the default value, set for newly created layer shell
 	 * surfaces.
 	 *
-	 * This is useful for e.g. desktop widgets that display information
+	 * This is useful for e.g. desktop widgets that output information
 	 * or only have interaction with non-keyboard input devices.
 	 */
 	ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE = 0,
@@ -519,7 +519,7 @@ zwlr_layer_surface_v1_get_version(struct zwlr_layer_surface_v1 *zwlr_layer_surfa
  * @ingroup iface_zwlr_layer_surface_v1
  *
  * Sets the size of the surface in surface-local coordinates. The
- * compositor will display the surface centered with respect to its
+ * compositor will output the surface centered with respect to its
  * anchors.
  *
  * If you pass 0 for either value, the compositor will assign it and
