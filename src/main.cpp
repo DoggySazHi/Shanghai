@@ -34,11 +34,13 @@ struct wl_surface *wl_surface;
 struct wl_egl_window *egl_window;
 struct wlr_egl_surface *egl_surface;
 struct wl_callback *frame_callback;
+// Set to UINT32_MAX to indicate that we don't care about the output (usually last-used monitor)
+// Other options: 0 (for first monitor), 1 (for second monitor), 2, etc.
 static uint32_t output = UINT32_MAX;
 
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_BOTTOM;
 static uint32_t anchor = 0 | ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
- // Wayland will resize to full screen
+ // Wayland will resize to full screen, so just keep it zero
 static int32_t margin_top = 0;
 static int32_t margin_bottom = 0;
 static bool run_display = true;
@@ -146,17 +148,15 @@ const struct wl_seat_listener seat_listener = {
 };
 
 static void handle_global([[maybe_unused]] void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version) {
+    std::cout << interface << '\n';
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         compositor = static_cast<wl_compositor *>(wl_registry_bind(registry, name, &wl_compositor_interface, 1));
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
         shm = static_cast<wl_shm *>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
     } else if (strcmp(interface, "wl_output") == 0) {
         if (output != UINT32_MAX) {
-            if (!wl_output) {
-                wl_output = static_cast<struct wl_output *>(wl_registry_bind(registry, name, &wl_output_interface, 1));
-            } else {
-                output--;
-            }
+            wl_output = static_cast<struct wl_output *>(wl_registry_bind(registry, name, &wl_output_interface, 1));
+            output--; // We abuse unsigned integer underflow to stop at the desired output
         }
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
         seat = static_cast<wl_seat *>(wl_registry_bind(registry, name, &wl_seat_interface, 1));
