@@ -14,8 +14,10 @@ extern EGLState eglState;
 static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface, [[maybe_unused]] wl_fixed_t surface_x, [[maybe_unused]] wl_fixed_t surface_y) {
     struct wl_cursor_image *image;
     // Pretty much useless since it's set in Shanghai as a per-frame update.
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();;
-    image = left_ptr_cursor->images[wl_cursor_frame(left_ptr_cursor, time)];
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    eglState.cursorAnimationTime = time;
+
+    image = left_ptr_cursor->images[wl_cursor_frame(left_ptr_cursor, 0)];
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
@@ -30,6 +32,7 @@ static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_
 static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
     eglState.curX = eglState.curY = -1;
     eglState.buttons = 0;
+    eglState.inShanghai = false;
 
 #ifdef DEBUG
     std::cout << "Left surface" << std::endl;

@@ -51,6 +51,8 @@ Shanghai::~Shanghai() {
 void Shanghai::updateCursor(EGLState* state) const {
     struct wl_cursor_image *image;
 
+    auto time = getTime();
+
     // Check if mouse is in bounding box of Shanghai
     wl_cursor* cursor = left_ptr_cursor;
     if ((float) state->curX > positionX &&
@@ -58,9 +60,17 @@ void Shanghai::updateCursor(EGLState* state) const {
         (float) (state->height - state->curY) > positionY &&
         (float) (state->height - state->curY) < positionY + 128) {
         cursor = pointer_cursor;
+
+        if (!state->inShanghai) {
+            state->inShanghai = true;
+            state->cursorAnimationTime = time;
+        }
+    } else if (state->inShanghai) {
+        state->inShanghai = false;
+        state->cursorAnimationTime = time;
     }
 
-    image = cursor->images[wl_cursor_frame(cursor, getTime())];
+    image = cursor->images[wl_cursor_frame(cursor, time - state->cursorAnimationTime)];
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
