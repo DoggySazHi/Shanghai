@@ -1,6 +1,12 @@
 #include <stdexcept>
+#include <wayland-client-protocol.h>
+#include <wayland-cursor.h>
 #include "Shanghai.h"
 #include "stb_image.h"
+
+extern struct wl_surface *cursor_surface;
+extern struct wl_cursor* left_ptr_cursor;
+extern struct wl_cursor* pointer_cursor;
 
 Shanghai::Shanghai() {
     shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
@@ -42,6 +48,24 @@ Shanghai::~Shanghai() {
     delete stateMachine;
 }
 
+void Shanghai::updateCursor(EGLState* state) const {
+    struct wl_cursor_image *image;
+
+    // Check if mouse is in bounding box of Shanghai
+    wl_cursor* cursor = left_ptr_cursor;
+    if ((float) state->curX > positionX &&
+        (float) state->curX < positionX + SHANGHAI_TEXTURE_WIDTH &&
+        (float) (state->height - state->curY) > positionY &&
+        (float) (state->height - state->curY) < positionY + 128) {
+        cursor = pointer_cursor;
+    }
+
+    image = cursor->images[wl_cursor_frame(cursor, getTime())];
+    wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
+    wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
+    wl_surface_commit(cursor_surface);
+}
+
 void Shanghai::draw(EGLState* state) {
     stateMachine->frame(this, state);
 
@@ -75,6 +99,8 @@ void Shanghai::draw(EGLState* state) {
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+
+    updateCursor(state);
 }
 
 void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {

@@ -25,6 +25,8 @@ public:
     float positionX = 0, positionY = 0;
     bool flip = true;
 private:
+    void updateCursor(EGLState* state) const;
+
     Shader* shader;
     GLuint textures[SHANGHAI_TEXTURE_COUNT] = {0};
     int textureIndex = 0;

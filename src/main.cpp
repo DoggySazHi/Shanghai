@@ -47,7 +47,8 @@ static int32_t margin_bottom = 0;
 static bool run_display = true;
 static enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
 
-struct wl_cursor_image *cursor_image;
+struct wl_cursor* left_ptr_cursor;
+struct wl_cursor* pointer_cursor;
 struct wl_surface *cursor_surface, *input_surface;
 
 // Stuff we care about
@@ -210,12 +211,14 @@ int main() {
     // Cursor when you hover over Shanghai
     struct wl_cursor_theme *cursor_theme = wl_cursor_theme_load(nullptr, 16, shm);
     assert(cursor_theme);
-    struct wl_cursor *cursor = wl_cursor_theme_get_cursor(cursor_theme, "pointer");
-    if (cursor == nullptr) {
-        cursor = wl_cursor_theme_get_cursor(cursor_theme, "left_ptr");
+
+    left_ptr_cursor = wl_cursor_theme_get_cursor(cursor_theme, "left_ptr");
+    pointer_cursor = wl_cursor_theme_get_cursor(cursor_theme, "pointer");
+    if (pointer_cursor == nullptr) {
+        pointer_cursor = left_ptr_cursor;
     }
-    assert(cursor);
-    cursor_image = cursor->images[0];
+    assert(left_ptr_cursor);
+    assert(pointer_cursor);
 
     cursor_surface = wl_compositor_create_surface(compositor);
     assert(cursor_surface);
