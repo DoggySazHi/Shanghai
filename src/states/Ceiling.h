@@ -1,12 +1,12 @@
-#ifndef SHANGHAI_STANDING_H
-#define SHANGHAI_STANDING_H
+#ifndef SHANGHAI_CEILING_H
+#define SHANGHAI_CEILING_H
 
 #include "ShanghaiStateMachineState.h"
 
-class Standing : public ShanghaiStateMachineState {
+class Ceiling : public ShanghaiStateMachineState {
 public:
     void frame(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
 };
 
 
-#endif //SHANGHAI_STANDING_H
+#endif //SHANGHAI_CEILING_H

@@ -15,6 +15,6 @@ It's also CMake so you gotta do the usual `cmake . && make` dance.
 ## Tasks
 - [x] Rewrite into C++ from `layer-shell.c`
 - [x] Load images as GL textures (uses stb_image)
-- [ ] Reverse engineer Shimiji's behavior
+- [ ] Reverse engineer Shimeji's behavior
   - [ ] Implement the animation/agent state machine
   - [ ] Implement animation in EGL

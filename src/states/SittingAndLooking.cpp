@@ -19,11 +19,3 @@ void SittingAndLooking::frame(EGLState* state, Shanghai *shanghai, ShanghaiState
         shanghai->setTexture(32);
     }
 }
-
-void SittingAndLooking::startDrag(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-
-}
-
-void SittingAndLooking::endDrag(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-
-}

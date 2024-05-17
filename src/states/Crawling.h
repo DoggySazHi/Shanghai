@@ -6,8 +6,6 @@
 class Crawling : public ShanghaiStateMachineState {
 public:
     void frame(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
-    void startDrag(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
-    void endDrag(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
     float speed = 4.0f;
 private:
     uint64_t lastCycleTime = 0;

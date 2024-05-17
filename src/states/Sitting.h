@@ -7,8 +7,6 @@
 class Sitting : public ShanghaiStateMachineState {
 public:
     void frame(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
-    void startDrag(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
-    void endDrag(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) override;
 };
 
 

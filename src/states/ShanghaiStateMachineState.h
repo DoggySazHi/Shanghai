@@ -13,8 +13,6 @@ class ShanghaiStateMachineState {
 public:
     virtual ~ShanghaiStateMachineState() = default;
     virtual void frame(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) = 0;
-    virtual void startDrag(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) = 0;
-    virtual void endDrag(EGLState* state, Shanghai* shanghai, ShanghaiStateMachine* machine) = 0;
 private:
 };
 

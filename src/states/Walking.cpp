@@ -26,11 +26,3 @@ void Walking::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* m
         shanghai->positionX -= speed;
     }
 }
-
-void Walking::startDrag(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-
-}
-
-void Walking::endDrag(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-
-}

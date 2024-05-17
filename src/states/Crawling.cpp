@@ -41,11 +41,3 @@ void Crawling::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* 
         shanghai->setTexture(20);
     }
 }
-
-void Crawling::startDrag(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-
-}
-
-void Crawling::endDrag(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-
-}

@@ -75,6 +75,10 @@ SET(SHANGHAI_SOURCE
         src/states/Crawling.h
         src/config/ShanghaiConfiguration.cpp
         src/config/ShanghaiConfiguration.h
+        src/states/Ceiling.cpp
+        src/states/Ceiling.h
+        src/states/CeilingCrawl.cpp
+        src/states/CeilingCrawl.h
 )
 
 add_executable(Shanghai

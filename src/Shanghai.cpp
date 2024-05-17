@@ -15,6 +15,7 @@ Shanghai::Shanghai() {
         throw std::runtime_error("Failed to compile shader");
     }
 
+    // Generate textures
     glGenTextures(SHANGHAI_TEXTURE_COUNT, textures);
     for (int i = 0; i < SHANGHAI_TEXTURE_COUNT; i++) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
@@ -48,6 +49,10 @@ Shanghai::~Shanghai() {
     delete stateMachine;
 }
 
+/**
+ * Update the Wayland cursor image based on the current state.
+ * @param state The current EGL state (mouse position)
+ */
 void Shanghai::updateCursor(EGLState* state) const {
     struct wl_cursor_image *image;
 
@@ -118,6 +123,11 @@ void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {
     displayHeight = height;
 }
 
+/**
+ * Select the texture file to render.
+ * Note that the texture index is 0-based; shime1.png is index 0, shime2.png is index 1, etc.
+ * @param index The 0-based index of the texture to render
+ */
 void Shanghai::setTexture(int index) {
     if (index < 0 || index >= SHANGHAI_TEXTURE_COUNT) {
         throw std::runtime_error("Invalid texture index " + std::to_string(index) + " out of bounds 0-" + std::to_string(SHANGHAI_TEXTURE_COUNT - 1) + ".");
@@ -126,7 +136,10 @@ void Shanghai::setTexture(int index) {
     textureIndex = index;
 }
 
-// Gets the relative time in milliseconds
+/**
+ * Get the current time in milliseconds. This uses a monotonic clock.
+ * @return The current time in milliseconds
+ */
 uint64_t Shanghai::getTime() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 }
