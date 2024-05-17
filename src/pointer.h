@@ -23,20 +23,12 @@ static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_
     wl_surface_commit(cursor_surface);
     wl_pointer_set_cursor(wl_pointer, serial, cursor_surface, (int) image->hotspot_x, (int) image->hotspot_y);
     input_surface = surface;
-
-#ifdef DEBUG
-    std::cout << "Entered surface" << std::endl;
-#endif
 }
 
 static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
     eglState.curX = eglState.curY = -1;
     eglState.buttons = 0;
     eglState.inShanghai = false;
-
-#ifdef DEBUG
-    std::cout << "Left surface" << std::endl;
-#endif
 }
 
 static void wl_pointer_motion([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {

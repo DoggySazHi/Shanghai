@@ -89,3 +89,7 @@ void Shader::setUniform(const char *name, float a, float b) const {
 void Shader::setUniform(const char *name, bool value) const {
     setUniform(name, value ? 1 : 0);
 }
+
+void Shader::setUniform(const char *name, float value) const {
+    glUniform1f(glGetUniformLocation(id, name), value);
+}

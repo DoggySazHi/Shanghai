@@ -10,6 +10,7 @@ public:
     void use() const;
     [[nodiscard]] bool isCompiled() const;
     void setUniform(const char* name, int value) const;
+    void setUniform(const char* name, float value) const;
     void setUniform(const char* name, float a, float b) const;
     void setUniform(const char* name, bool value) const;
 private:

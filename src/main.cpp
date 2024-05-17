@@ -17,6 +17,7 @@
 #include "pointer.h"
 #include "state.h"
 #include "config/ShanghaiConfiguration.h"
+#include "Background.h"
 
 // All Wayland runtime variables
 static struct wl_display *display;
@@ -54,6 +55,7 @@ struct wl_surface *cursor_surface, *input_surface;
 // Stuff we care about
 EGLWaylandContext* eglWaylandContext;
 EGLState eglState;
+Background* background;
 Shanghai* shanghai;
 
 static void draw();
@@ -84,6 +86,7 @@ static void draw() {
         glDisable(GL_SCISSOR_TEST);
     }
 
+    background->draw(&eglState);
     shanghai->draw(&eglState);
 
     frame_callback = wl_surface_frame(wl_surface);
@@ -106,6 +109,10 @@ static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_lay
 
     if (shanghai != nullptr) {
         shanghai->setScreenGeometry(eglState.width, eglState.height);
+    }
+
+    if (background != nullptr) {
+        background->setScreenGeometry(eglState.width, eglState.height);
     }
 
     if (egl_window) {
@@ -257,6 +264,11 @@ int main() {
     std::cout << "OpenGL vendor: " << glGetString(GL_VENDOR) << '\n';
     std::cout << "OpenGL shading language version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n\n";
 
+    // Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    background = new Background();
     shanghai = new Shanghai();
 
     std::cout << "Starting output...\n";
