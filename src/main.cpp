@@ -55,6 +55,7 @@ struct wl_surface *cursor_surface, *input_surface;
 // Stuff we care about
 EGLWaylandContext* eglWaylandContext;
 EGLState eglState;
+ShanghaiConfiguration* config;
 Background* background;
 Shanghai* shanghai;
 
@@ -86,7 +87,10 @@ static void draw() {
         glDisable(GL_SCISSOR_TEST);
     }
 
-    background->draw(&eglState);
+    if (config->isBackgroundEnabled()) {
+        background->draw(&eglState);
+    }
+
     shanghai->draw(&eglState);
 
     frame_callback = wl_surface_frame(wl_surface);
@@ -189,7 +193,7 @@ int main() {
     const char* wlrNamespace = "wlroots";
 
     std::cout << "Loading configuration...\n";
-    auto* config = ShanghaiConfiguration::getInstance();
+    config = ShanghaiConfiguration::getInstance();
     output = config->getOutput();
 
     display = wl_display_connect(nullptr);
@@ -268,7 +272,10 @@ int main() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    background = new Background();
+    if (config->isBackgroundEnabled()) {
+        background = new Background();
+    }
+
     shanghai = new Shanghai();
 
     std::cout << "Starting output...\n";
