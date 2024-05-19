@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <cassert>
-#include <GLES2/gl2.h>
+#include "gl.h"
 #include <cstring>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
@@ -12,12 +12,12 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "Shanghai.h"
+#include "../Shanghai.h"
 #include "keyboard.h"
 #include "pointer.h"
-#include "state.h"
-#include "config/ShanghaiConfiguration.h"
-#include "Background.h"
+#include "../state.h"
+#include "../config/ShanghaiConfiguration.h"
+#include "../Background.h"
 
 // All Wayland runtime variables
 static struct wl_display *display;

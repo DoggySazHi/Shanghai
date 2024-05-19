@@ -1,7 +1,7 @@
 #ifndef SHANGHAI_SHADER_H
 #define SHANGHAI_SHADER_H
 
-#include <GLES2/gl2.h>
+#include "gl.h"
 
 class Shader {
 public:

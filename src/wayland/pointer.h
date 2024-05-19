@@ -3,7 +3,7 @@
 
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
-#include "state.h"
+#include "../state.h"
 
 extern struct wl_surface *wl_surface;
 extern struct wl_surface *cursor_surface, *input_surface;

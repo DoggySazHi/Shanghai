@@ -1,6 +1,8 @@
 #include <stdexcept>
+#ifdef __WAYLAND__
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
+#endif
 #include "Shanghai.h"
 #include "stb_image.h"
 
@@ -54,6 +56,7 @@ Shanghai::~Shanghai() {
  * @param state The current EGL state (mouse position)
  */
 void Shanghai::updateCursor(EGLState* state) const {
+#ifdef __WAYLAND__
     struct wl_cursor_image *image;
 
     auto time = getTime();
@@ -79,6 +82,7 @@ void Shanghai::updateCursor(EGLState* state) const {
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
+#endif
 }
 
 void Shanghai::draw(EGLState* state) {
