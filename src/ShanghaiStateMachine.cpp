@@ -1,3 +1,5 @@
+#include <iostream>
+#include <utility>
 #include "ShanghaiStateMachine.h"
 #include "states/Standing.h"
 #include "states/Walking.h"
@@ -7,6 +9,7 @@
 #include "states/Ceiling.h"
 #include "states/CeilingCrawl.h"
 #include "states/Resist.h"
+#include "states/Dragged.h"
 
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
@@ -22,7 +25,7 @@ ShanghaiStateMachine::ShanghaiStateMachine() {
 //    stateActions[ShanghaiState::CLIMBING] = new Climbing();
 //    stateActions[ShanghaiState::THROWING] = new Throwing();
 //    stateActions[ShanghaiState::CHEERING] = new Cheering();
-//    stateActions[ShanghaiState::DRAGGED] = new Dragged();
+    stateActions[ShanghaiState::DRAGGED] = new Dragged();
 //    stateActions[ShanghaiState::FALLING] = new Falling();
 //    stateActions[ShanghaiState::HIT_GROUND] = new HitGround();
 }
@@ -47,21 +50,34 @@ void ShanghaiStateMachine::frame(Shanghai* shanghai, EGLState* eglState) {
     } else if (isNewState) {
         isNewState = false;
     }
+
+    // Handle mouse inputs
+    if (state != ShanghaiState::DRAGGED && eglState->buttons) {
+        startDrag(eglState->curX, eglState->curY);
+    } else if (state == ShanghaiState::DRAGGED && !eglState->buttons) {
+        endDrag();
+    }
 }
 
 void ShanghaiStateMachine::startDrag(uint32_t x, uint32_t y) {
     // Special case, regardless of the current state, we always start dragging
     dragStartX = x;
     dragStartY = y;
-    state = ShanghaiState::DRAGGED;
+    setState(ShanghaiState::DRAGGED);
 }
 
 void ShanghaiStateMachine::endDrag() {
-    // Special case, regardless of the current state, we always end dragging
-    state = ShanghaiState::FALLING;
+    // Special case, regardless of the current state, we always end dragging TODO
+//    setState(ShanghaiState::RESIST);
 }
 
 void ShanghaiStateMachine::setState(ShanghaiState newState) {
+#ifdef DEBUG
+    if (state != newState) {
+        std::cout << "State change: " << std::to_underlying(state) << " -> " << std::to_underlying(newState) << std::endl;
+    }
+#endif
+
     state = newState;
     isNewState = true;
     isNewStateSet = true;
