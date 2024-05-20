@@ -26,7 +26,6 @@ static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_
 }
 
 static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
-    eglState.curX = eglState.curY = -1;
     eglState.buttons = 0;
     eglState.inShanghai = false;
 }

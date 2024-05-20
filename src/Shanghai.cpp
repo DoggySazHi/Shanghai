@@ -1,17 +1,16 @@
 #include <stdexcept>
-#ifdef __WAYLAND__
-#include <wayland-client-protocol.h>
-#include <wayland-cursor.h>
-#endif
+
 #include "Shanghai.h"
 #include "stb_image.h"
 
-extern struct wl_surface *cursor_surface;
+extern struct wl_compositor *compositor;
+extern struct wl_surface *wl_surface, *cursor_surface;
 extern struct wl_cursor* left_ptr_cursor;
 extern struct wl_cursor* pointer_cursor;
 
 Shanghai::Shanghai() {
     shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
+    inputRegion = wl_compositor_create_region(compositor);
 
     if (!shader->isCompiled()) {
         throw std::runtime_error("Failed to compile shader");
@@ -55,7 +54,7 @@ Shanghai::~Shanghai() {
  * Update the Wayland cursor image based on the current state.
  * @param state The current EGL state (mouse position)
  */
-void Shanghai::updateCursor(EGLState* state) const {
+void Shanghai::updateCursor(EGLState* state) {
 #ifdef __WAYLAND__
     struct wl_cursor_image *image;
 
@@ -77,6 +76,11 @@ void Shanghai::updateCursor(EGLState* state) const {
         state->inShanghai = false;
         state->cursorAnimationTime = time;
     }
+
+    wl_region_destroy(inputRegion);
+    inputRegion = wl_compositor_create_region(compositor);
+    wl_region_add(inputRegion, positionX, state->height - positionY - SHANGHAI_TEXTURE_WIDTH, SHANGHAI_TEXTURE_WIDTH, SHANGHAI_TEXTURE_WIDTH);
+    wl_surface_set_input_region(wl_surface, inputRegion);
 
     image = cursor->images[wl_cursor_frame(cursor, time - state->cursorAnimationTime)];
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);

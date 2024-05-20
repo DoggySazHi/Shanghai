@@ -54,7 +54,7 @@ void ShanghaiStateMachine::frame(Shanghai* shanghai, EGLState* eglState) {
     }
 
     // Handle mouse inputs
-    if (state != ShanghaiState::DRAGGED && eglState->buttons) {
+    if (eglState->inShanghai && state != ShanghaiState::DRAGGED && eglState->buttons) {
         startDrag(eglState->curX, eglState->curY);
     } else if (state == ShanghaiState::DRAGGED && !eglState->buttons) {
         endDrag();

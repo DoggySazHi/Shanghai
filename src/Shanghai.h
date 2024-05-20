@@ -7,6 +7,11 @@
 #include "state.h"
 #include "ShanghaiStateMachine.h"
 
+#ifdef __WAYLAND__
+#include <wayland-client-protocol.h>
+#include <wayland-cursor.h>
+#endif
+
 #define SHANGHAI_TEXTURE_COUNT 46
 #define SHANGHAI_TEXTURE_WIDTH 128
 
@@ -25,7 +30,7 @@ public:
     float positionX = 0, positionY = 0;
     bool flip = true;
 private:
-    void updateCursor(EGLState* state) const;
+    void updateCursor(EGLState* state);
 
     Shader* shader;
     GLuint textures[SHANGHAI_TEXTURE_COUNT] = {0};
@@ -33,6 +38,10 @@ private:
     uint32_t displayWidth = 0, displayHeight = 0;
 
     ShanghaiStateMachine* stateMachine;
+
+#ifdef __WAYLAND__
+    wl_region *inputRegion = nullptr;
+#endif
 };
 
 

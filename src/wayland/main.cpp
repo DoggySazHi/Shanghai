@@ -21,7 +21,7 @@
 
 // All Wayland runtime variables
 static struct wl_display *display;
-static struct wl_compositor *compositor;
+struct wl_compositor *compositor;
 static struct wl_seat *seat;
 static struct wl_shm *shm;
 static struct wl_pointer *pointer;
@@ -195,6 +195,7 @@ int main() {
     std::cout << "Loading configuration...\n";
     config = ShanghaiConfiguration::getInstance();
     output = config->getOutput();
+    layer = config->getLayer();
 
     display = wl_display_connect(nullptr);
     if (display == nullptr) {

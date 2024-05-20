@@ -35,9 +35,11 @@ ShanghaiConfiguration::~ShanghaiConfiguration() {
 void ShanghaiConfiguration::serialize(Json::Value &root) const {
     root["output"] = output;
     root["enableBackground"] = enableBackground;
+    root["layer"] = layer;
 }
 
 void ShanghaiConfiguration::deserialize(const Json::Value &root) {
     output = root.get("output", UINT32_MAX).asUInt();
     enableBackground = root.get("enableBackground", false).asBool();
+    layer = root.get("layer", 1).asUInt();
 }
