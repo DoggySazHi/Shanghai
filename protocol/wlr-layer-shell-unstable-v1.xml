@@ -335,7 +335,7 @@
                 The client is free to dismiss all but the last configure event it
                 received.
 
-                The width and height arguments specify the size of the window in
+                The width and height arguments specify the size of the glfwWindow in
                 surface-local coordinates.
 
                 The size is a hint, in the sense that the client is free to ignore it if
@@ -345,7 +345,7 @@
                 surface will be centered on this axis.
 
                 If the width or height arguments are zero, it means the client should
-                decide its own window dimension.
+                decide its own glfwWindow dimension.
             </description>
             <arg name="serial" type="uint"/>
             <arg name="width" type="uint"/>

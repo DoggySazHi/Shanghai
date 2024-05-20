@@ -8,3 +8,8 @@ Shanghai
 *.cmake
 *.ninja*
 Testing
+
+# Windows dependencies
+include/glad
+include/KHR
+libs/
