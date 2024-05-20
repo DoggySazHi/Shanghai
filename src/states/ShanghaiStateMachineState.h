@@ -16,7 +16,6 @@ public:
 
     // Helper function to convert speed to velocity (respecting the flip flag)
 #define speedToVelocity(shanghai, speed) (speed * (shanghai->flip ? 1.0f : -1.0f))
-private:
 };
 
 #endif //SHANGHAI_SHANGHAISTATEMACHINESTATE_H

@@ -96,6 +96,10 @@ SET(SHANGHAI_SOURCE
     src/Background.cpp
     src/Background.h
         src/gl.h
+        src/states/Resist.cpp
+        src/states/Resist.h
+        src/animation/ShanghaiAnimationMachine.cpp
+        src/animation/ShanghaiAnimationMachine.h
 )
 
 add_executable(Shanghai

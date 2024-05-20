@@ -13,6 +13,7 @@ enum class ShanghaiState {
     CRAWLING,
     CEILING,
     CEILING_CRAWL,
+    RESIST,
     CLIMBING,
     THROWING,
     CHEERING,
@@ -30,14 +31,18 @@ public:
     ShanghaiStateMachine();
     ~ShanghaiStateMachine();
     [[nodiscard]] ShanghaiState getState() const;
+    void setState(ShanghaiState newState);
+    [[nodiscard]] bool isNewStateFlag() const;
     void startDrag(uint32_t x, uint32_t y);
     void endDrag();
 
     void frame(Shanghai *shanghai, EGLState *state);
 
 private:
+    bool isNewState = true;
+    bool isNewStateSet = false;
     uint32_t dragStartX = 0, dragStartY = 0;
-    ShanghaiState state = ShanghaiState::CEILING_CRAWL;
+    ShanghaiState state = ShanghaiState::RESIST;
     std::unordered_map<ShanghaiState, ShanghaiStateMachineState*> stateActions;
 
 };
