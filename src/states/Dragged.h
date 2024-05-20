@@ -3,7 +3,6 @@
 
 
 #include "ShanghaiStateMachineState.h"
-#include "../animation/ShanghaiAnimationMachine.h"
 
 class Dragged : public ShanghaiStateMachineState {
 public:

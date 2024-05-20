@@ -102,6 +102,8 @@ SET(SHANGHAI_SOURCE
         src/animation/ShanghaiAnimationMachine.h
         src/states/Dragged.cpp
         src/states/Dragged.h
+        src/states/Falling.cpp
+        src/states/Falling.h
 )
 
 add_executable(Shanghai

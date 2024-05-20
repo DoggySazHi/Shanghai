@@ -10,6 +10,7 @@
 #include "states/CeilingCrawl.h"
 #include "states/Resist.h"
 #include "states/Dragged.h"
+#include "states/Falling.h"
 
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
@@ -26,7 +27,7 @@ ShanghaiStateMachine::ShanghaiStateMachine() {
 //    stateActions[ShanghaiState::THROWING] = new Throwing();
 //    stateActions[ShanghaiState::CHEERING] = new Cheering();
     stateActions[ShanghaiState::DRAGGED] = new Dragged();
-//    stateActions[ShanghaiState::FALLING] = new Falling();
+    stateActions[ShanghaiState::FALLING] = new Falling();
 //    stateActions[ShanghaiState::HIT_GROUND] = new HitGround();
 }
 
@@ -67,8 +68,8 @@ void ShanghaiStateMachine::startDrag(uint32_t x, uint32_t y) {
 }
 
 void ShanghaiStateMachine::endDrag() {
-    // Special case, regardless of the current state, we always end dragging TODO
-//    setState(ShanghaiState::RESIST);
+    // Special case, regardless of the current state, we always end dragging
+    setState(ShanghaiState::FALLING);
 }
 
 void ShanghaiStateMachine::setState(ShanghaiState newState) {
