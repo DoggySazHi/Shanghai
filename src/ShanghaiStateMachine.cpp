@@ -4,6 +4,8 @@
 #include "states/Sitting.h"
 #include "states/SittingAndLooking.h"
 #include "states/Crawling.h"
+#include "states/Ceiling.h"
+#include "states/CeilingCrawl.h"
 
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
@@ -13,6 +15,8 @@ ShanghaiStateMachine::ShanghaiStateMachine() {
     stateActions[ShanghaiState::SITTING] = new Sitting();
     stateActions[ShanghaiState::SITTING_AND_LOOKING] = new SittingAndLooking();
     stateActions[ShanghaiState::CRAWLING] = new Crawling();
+    stateActions[ShanghaiState::CEILING] = new Ceiling();
+    stateActions[ShanghaiState::CEILING_CRAWL] = new CeilingCrawl();
 //    stateActions[ShanghaiState::CLIMBING] = new Climbing();
 //    stateActions[ShanghaiState::THROWING] = new Throwing();
 //    stateActions[ShanghaiState::CHEERING] = new Cheering();

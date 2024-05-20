@@ -15,28 +15,13 @@ void Crawling::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* 
         shanghai->setTexture(19);
     } else if (step < 8) {
         shanghai->setTexture(19);
-
-        if (shanghai->flip) {
-            shanghai->positionX += speed * 2;
-        } else {
-            shanghai->positionX -= speed * 2;
-        }
+        shanghai->positionX += speedToVelocity(shanghai, 2.0f * speed);
     } else if (step < 9) {
         shanghai->setTexture(20);
-
-        if (shanghai->flip) {
-            shanghai->positionX += speed * 2;
-        } else {
-            shanghai->positionX -= speed * 2;
-        }
+        shanghai->positionX += speedToVelocity(shanghai, 2.0f * speed);
     } else if (step < 10) {
         shanghai->setTexture(20);
-
-        if (shanghai->flip) {
-            shanghai->positionX += speed;
-        } else {
-            shanghai->positionX -= speed;
-        }
+        shanghai->positionX += speedToVelocity(shanghai, speed);
     } else {
         shanghai->setTexture(20);
     }

@@ -20,9 +20,5 @@ void Walking::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* m
         shanghai->setTexture(2);
     }
 
-    if (shanghai->flip) {
-        shanghai->positionX += speed;
-    } else {
-        shanghai->positionX -= speed;
-    }
+    shanghai->positionX += speedToVelocity(shanghai, speed);
 }

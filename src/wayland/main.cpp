@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <cassert>
-#include "gl.h"
+#include "../gl.h"
 #include <cstring>
 #include <wayland-client.h>
 #include <wayland-cursor.h>

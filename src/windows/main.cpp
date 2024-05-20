@@ -84,6 +84,10 @@ int main() {
     std::cout << "Loading configuration...\n";
     config = ShanghaiConfiguration::getInstance();
 
+    glfwSetErrorCallback([](int error, const char* description) {
+        std::cerr << "GLFW error " << error << ": " << description << '\n';
+    });
+
     glfwInit();
 
     int monitorCount;

@@ -391,8 +391,8 @@ struct zwlr_layer_surface_v1_listener {
 	 * The client is free to dismiss all but the last configure event
 	 * it received.
 	 *
-	 * The width and height arguments specify the size of the window in
-	 * surface-local coordinates.
+	 * The width and height arguments specify the size of the
+	 * glfwWindow in surface-local coordinates.
 	 *
 	 * The size is a hint, in the sense that the client is free to
 	 * ignore it if it doesn't resize, pick a smaller size (to satisfy
@@ -402,7 +402,7 @@ struct zwlr_layer_surface_v1_listener {
 	 * axis.
 	 *
 	 * If the width or height arguments are zero, it means the client
-	 * should decide its own window dimension.
+	 * should decide its own glfwWindow dimension.
 	 */
 	void (*configure)(void *data,
 			  struct zwlr_layer_surface_v1 *zwlr_layer_surface_v1,
