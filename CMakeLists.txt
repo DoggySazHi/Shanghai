@@ -104,6 +104,8 @@ SET(SHANGHAI_SOURCE
         src/states/Dragged.h
         src/states/Falling.cpp
         src/states/Falling.h
+        src/states/Landed.cpp
+        src/states/Landed.h
 )
 
 add_executable(Shanghai

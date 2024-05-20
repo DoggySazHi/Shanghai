@@ -19,7 +19,7 @@ enum class ShanghaiState {
     CHEERING,
     DRAGGED,
     FALLING,
-    HIT_GROUND,
+    LANDED,
 };
 
 // Forward declaration

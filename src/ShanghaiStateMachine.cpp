@@ -11,6 +11,7 @@
 #include "states/Resist.h"
 #include "states/Dragged.h"
 #include "states/Falling.h"
+#include "states/Landed.h"
 
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
@@ -28,7 +29,7 @@ ShanghaiStateMachine::ShanghaiStateMachine() {
 //    stateActions[ShanghaiState::CHEERING] = new Cheering();
     stateActions[ShanghaiState::DRAGGED] = new Dragged();
     stateActions[ShanghaiState::FALLING] = new Falling();
-//    stateActions[ShanghaiState::HIT_GROUND] = new HitGround();
+    stateActions[ShanghaiState::LANDED] = new Landed();
 }
 
 ShanghaiStateMachine::~ShanghaiStateMachine() {

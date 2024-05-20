@@ -11,6 +11,7 @@ void Dragged::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
         lastCycleTime = time;
     }
 
+    shanghai->flip = false;
     shanghai->positionX = (float) (state->curX - SHANGHAI_TEXTURE_WIDTH / 2.0);
     shanghai->positionY = (float) (state->height - state->curY - SHANGHAI_TEXTURE_WIDTH / 1.2);
 

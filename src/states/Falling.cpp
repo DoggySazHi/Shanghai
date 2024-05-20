@@ -9,12 +9,21 @@ void Falling::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
         startFallY = shanghai->positionY;
     }
 
-    if (time - lastCycleTime > FALLING_STEP_TIME) {
-        lastCycleTime = time;
-    }
+//    Technically a bug before I fixed it (below is revised, see previous commits)
+//    but it was funnier when the falling was smooth, so I kept it in.
+//
+//    if (time - lastCycleTime < LANDED_STEP_TIME) {
+//        return;
+//    }
+//    lastCycleTime = time;
 
     shanghai->setTexture(3);
     shanghai->positionY = kinematicsY((float) time);
+
+    if (shanghai->positionY < 0) {
+        shanghai->positionY = 0;
+        machine->setState(ShanghaiState::LANDED);
+    }
 }
 
 float Falling::kinematicsY(float time) const {

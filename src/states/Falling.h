@@ -7,7 +7,7 @@
 class Falling : public ShanghaiStateMachineState {
 public:
     void frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *machine) override;
-    float kinematicsY(float time) const;
+    [[nodiscard]] float kinematicsY(float time) const;
 private:
 #define FALLING_STEP_TIME 133
 #define FALLING_STEP_ACC 0.01f
