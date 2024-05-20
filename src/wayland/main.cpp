@@ -57,7 +57,7 @@ EGLWaylandContext* eglWaylandContext;
 EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
-Shanghai* shanghai;
+std::vector<Shanghai*> shanghais;
 
 static void draw();
 
@@ -91,7 +91,11 @@ static void draw() {
         background->draw(&eglState);
     }
 
-    shanghai->draw(&eglState);
+    for (auto& shanghai : shanghais) {
+        shanghai->draw(&eglState);
+    }
+
+    Shanghai::updateCursor(shanghais, &eglState);
 
     frame_callback = wl_surface_frame(wl_surface);
     wl_callback_add_listener(frame_callback, &frame_listener, nullptr);
@@ -111,8 +115,8 @@ static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_lay
     eglState.width = w;
     eglState.height = h;
 
-    if (shanghai != nullptr) {
-        shanghai->setScreenGeometry(eglState.width, eglState.height);
+    for (auto& shanghai : shanghais) {
+        shanghai->setScreenGeometry(w, h);
     }
 
     if (background != nullptr) {
@@ -277,7 +281,16 @@ int main() {
         background = new Background();
     }
 
-    shanghai = new Shanghai();
+    shanghais.push_back(new Shanghai());
+    ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING};
+    for (int i = 0; i < 40; ++i) {
+        auto* shanghai = new Shanghai();
+        shanghai->positionX = i * 128;
+        shanghais.push_back(shanghai);
+
+        shanghai->getStateMachine()->setState(states[rand() % 4]);
+        shanghai->flip = rand() % 2 == 0;
+    }
 
     std::cout << "Starting output...\n";
 

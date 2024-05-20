@@ -27,7 +27,6 @@ static void wl_pointer_enter([[maybe_unused]] void *data, struct wl_pointer *wl_
 
 static void wl_pointer_leave([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t serial, [[maybe_unused]] struct wl_surface *surface) {
     eglState.buttons = 0;
-    eglState.inShanghai = false;
 }
 
 static void wl_pointer_motion([[maybe_unused]] void *data, [[maybe_unused]] struct wl_pointer *wl_pointer, [[maybe_unused]] uint32_t time, wl_fixed_t surface_x, wl_fixed_t surface_y) {

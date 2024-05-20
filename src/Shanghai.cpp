@@ -8,37 +8,48 @@ extern struct wl_surface *wl_surface, *cursor_surface;
 extern struct wl_cursor* left_ptr_cursor;
 extern struct wl_cursor* pointer_cursor;
 
-Shanghai::Shanghai() {
-    shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
-    inputRegion = wl_compositor_create_region(compositor);
+GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
+wl_region* Shanghai::inputRegion = nullptr;
+Shader* Shanghai::shader = nullptr;
 
-    if (!shader->isCompiled()) {
-        throw std::runtime_error("Failed to compile shader");
+Shanghai::Shanghai() {
+    if (shader == nullptr) {
+        shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
+
+        if (!shader->isCompiled()) {
+            throw std::runtime_error("Failed to compile shader");
+        }
+    }
+
+    if (inputRegion == nullptr) {
+        inputRegion = wl_compositor_create_region(compositor);
     }
 
     // Generate textures
-    glGenTextures(SHANGHAI_TEXTURE_COUNT, textures);
-    for (int i = 0; i < SHANGHAI_TEXTURE_COUNT; i++) {
-        glBindTexture(GL_TEXTURE_2D, textures[i]);
+    if (textures[0] == 0) {
+        glGenTextures(SHANGHAI_TEXTURE_COUNT, textures);
+        for (int i = 0; i < SHANGHAI_TEXTURE_COUNT; i++) {
+            glBindTexture(GL_TEXTURE_2D, textures[i]);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        int imgWidth, imgHeight, nrChannels;
-        stbi_set_flip_vertically_on_load(true);
-        std::string path = "img/shime" + std::to_string(i + 1) + ".png";
-        unsigned char *data = stbi_load(path.c_str(), &imgWidth, &imgHeight, &nrChannels, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            int imgWidth, imgHeight, nrChannels;
+            stbi_set_flip_vertically_on_load(true);
+            std::string path = "img/shime" + std::to_string(i + 1) + ".png";
+            unsigned char *data = stbi_load(path.c_str(), &imgWidth, &imgHeight, &nrChannels, 0);
+            if (data)
+            {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+                glGenerateMipmap(GL_TEXTURE_2D);
+            }
+            else
+            {
+                throw std::runtime_error("Failed to load texture " + path);
+            }
+            stbi_image_free(data);
         }
-        else
-        {
-            throw std::runtime_error("Failed to load texture " + path);
-        }
-        stbi_image_free(data);
     }
 
     stateMachine = new ShanghaiStateMachine();
@@ -54,7 +65,7 @@ Shanghai::~Shanghai() {
  * Update the Wayland cursor image based on the current state.
  * @param state The current EGL state (mouse position)
  */
-void Shanghai::updateCursor(EGLState* state) {
+void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* state) {
 #ifdef __WAYLAND__
     struct wl_cursor_image *image;
 
@@ -62,10 +73,23 @@ void Shanghai::updateCursor(EGLState* state) {
 
     // Check if mouse is in bounding box of Shanghai
     wl_cursor* cursor = left_ptr_cursor;
-    if ((float) state->curX > positionX &&
-        (float) state->curX < positionX + SHANGHAI_TEXTURE_WIDTH &&
-        (float) (state->height - state->curY) > positionY &&
-        (float) (state->height - state->curY) < positionY + 128) {
+    wl_region_destroy(inputRegion);
+    inputRegion = wl_compositor_create_region(compositor);
+
+    bool inAnyShanghai = false;
+    for (auto shanghai : shanghais) {
+        // Check if the cursor is in any Shanghai
+        if (shanghai->inShanghai(state)) {
+            inAnyShanghai = true;
+        }
+
+        // Allow the cursor to be over any Shanghais (allows them to be yeeted)
+        wl_region_add(inputRegion, (int) shanghai->positionX, (int) (state->height - (int) shanghai->positionY - SHANGHAI_TEXTURE_WIDTH), SHANGHAI_TEXTURE_WIDTH, SHANGHAI_TEXTURE_WIDTH);
+    }
+
+    wl_surface_set_input_region(wl_surface, inputRegion);
+
+    if (inAnyShanghai) {
         cursor = pointer_cursor;
 
         if (!state->inShanghai) {
@@ -76,11 +100,6 @@ void Shanghai::updateCursor(EGLState* state) {
         state->inShanghai = false;
         state->cursorAnimationTime = time;
     }
-
-    wl_region_destroy(inputRegion);
-    inputRegion = wl_compositor_create_region(compositor);
-    wl_region_add(inputRegion, positionX, state->height - positionY - SHANGHAI_TEXTURE_WIDTH, SHANGHAI_TEXTURE_WIDTH, SHANGHAI_TEXTURE_WIDTH);
-    wl_surface_set_input_region(wl_surface, inputRegion);
 
     image = cursor->images[wl_cursor_frame(cursor, time - state->cursorAnimationTime)];
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
@@ -122,8 +141,6 @@ void Shanghai::draw(EGLState* state) {
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-
-    updateCursor(state);
 }
 
 void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {
@@ -150,4 +167,15 @@ void Shanghai::setTexture(int index) {
  */
 uint64_t Shanghai::getTime() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+bool Shanghai::inShanghai(EGLState* state) const {
+    return (float) state->curX > positionX &&
+           (float) state->curX < positionX + SHANGHAI_TEXTURE_WIDTH &&
+           (float) (state->height - state->curY) > positionY &&
+           (float) (state->height - state->curY) < positionY + SHANGHAI_TEXTURE_WIDTH;
+}
+
+ShanghaiStateMachine *Shanghai::getStateMachine() const {
+    return stateMachine;
 }

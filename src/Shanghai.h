@@ -26,22 +26,24 @@ public:
     void setTexture(int index);
     void setScreenGeometry(uint32_t width, uint32_t height);
     static uint64_t getTime();
+    [[nodiscard]] ShanghaiStateMachine* getStateMachine() const;
 
     float positionX = 0, positionY = 0;
     bool flip = true;
-private:
-    void updateCursor(EGLState* state);
+    [[nodiscard]] bool inShanghai(EGLState* state) const;
 
-    Shader* shader;
-    GLuint textures[SHANGHAI_TEXTURE_COUNT] = {0};
+    static void updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* state);
+private:
+#ifdef __WAYLAND__
+    static wl_region *inputRegion;
+#endif
+
+    static Shader* shader;
+    static GLuint textures[SHANGHAI_TEXTURE_COUNT];
     int textureIndex = 0;
     uint32_t displayWidth = 0, displayHeight = 0;
 
     ShanghaiStateMachine* stateMachine;
-
-#ifdef __WAYLAND__
-    wl_region *inputRegion = nullptr;
-#endif
 };
 
 
