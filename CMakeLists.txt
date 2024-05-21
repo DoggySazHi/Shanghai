@@ -110,6 +110,8 @@ SET(SHANGHAI_SOURCE
         src/states/Landed.cpp
         src/states/Landed.h
         src/wayland/registry.h
+        src/Random.h
+        src/Random.cpp
 )
 
 add_executable(Shanghai

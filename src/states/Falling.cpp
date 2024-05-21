@@ -1,12 +1,13 @@
 #include "Falling.h"
+#include "../config/ShanghaiConfiguration.h"
+#include "../Random.h"
 
 void Falling::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *machine) {
     auto time = Shanghai::getTime();
 
     if (machine->isNewStateFlag()) {
         lastCycleTime = time - FALLING_STEP_TIME;
-        startFallTime = time;
-        startFallY = shanghai->positionY;
+        velocity = 0;
     }
 
 //    Technically a bug before I fixed it (below is revised, see previous commits)
@@ -18,15 +19,26 @@ void Falling::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
 //    lastCycleTime = time;
 
     shanghai->setTexture(3);
-    shanghai->positionY = kinematicsY((float) time);
+
+    velocity = std::min(velocity + FALLING_STEP_ACC, FALLING_MAX_VEL);
+    shanghai->positionY -= velocity;
 
     if (shanghai->positionY < 0) {
-        shanghai->positionY = 0;
-        machine->setState(ShanghaiState::LANDED);
-    }
-}
+        // Try to portal
+        if (!portalState && Random::rand() < ShanghaiConfiguration::getInstance()->getFallingPortalProbability()) {
+            portalState = true;
+        }
 
-float Falling::kinematicsY(float time) const {
-    float diff = time - (float) startFallTime;
-    return startFallY - (FALLING_STEP_ACC * diff * diff) / 2;
+        // Failed to portal
+        if (!portalState) {
+            shanghai->positionY = 0;
+            machine->setState(ShanghaiState::LANDED);
+        }
+
+        // Successful portal after falling
+        if (portalState && shanghai->positionY < -SHANGHAI_TEXTURE_WIDTH) {
+            shanghai->positionY = (float) (state->height + SHANGHAI_TEXTURE_WIDTH);
+            portalState = false;
+        }
+    }
 }

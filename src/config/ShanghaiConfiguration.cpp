@@ -36,10 +36,12 @@ void ShanghaiConfiguration::serialize(Json::Value &root) const {
     root["output"] = output;
     root["enableBackground"] = enableBackground;
     root["layer"] = layer;
+    root["fallingPortalProbability"] = fallingPortalProbability;
 }
 
 void ShanghaiConfiguration::deserialize(const Json::Value &root) {
     output = root.get("output", UINT32_MAX).asUInt();
     enableBackground = root.get("enableBackground", false).asBool();
     layer = root.get("layer", 1).asUInt();
+    fallingPortalProbability = root.get("fallingPortalProbability", 0.0f).asFloat();
 }
