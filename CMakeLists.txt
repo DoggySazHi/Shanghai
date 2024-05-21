@@ -52,6 +52,9 @@ if (UNIX AND NOT APPLE)
             src/wayland/EGLWaylandContext.h
             src/wayland/keyboard.h
             src/wayland/pointer.h
+            src/wayland/layer.h
+            src/wayland/seat.h
+            src/wayland/surface.h
     )
 elseif (WIN32)
     message(STATUS "Configuring for Windows")
@@ -67,34 +70,34 @@ endif ()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 SET(SHANGHAI_SOURCE
-    src/Shader.cpp
-    src/Shader.h
-    src/Shanghai.cpp
-    src/Shanghai.h
-    src/ShanghaiStateMachine.cpp
-    src/ShanghaiStateMachine.h
-    src/states/ShanghaiStateMachineState.h
-    src/states/Standing.cpp
-    src/states/Standing.h
-    src/state.h
-    src/states/Walking.cpp
-    src/states/Walking.h
-    src/states/Sitting.cpp
-    src/states/Sitting.h
-    src/states/SittingAndLooking.cpp
-    src/states/SittingAndLooking.h
-    src/states/LieDown.cpp
-    src/states/LieDown.h
-    src/states/Crawling.cpp
-    src/states/Crawling.h
-    src/config/ShanghaiConfiguration.cpp
-    src/config/ShanghaiConfiguration.h
-    src/states/Ceiling.cpp
-    src/states/Ceiling.h
-    src/states/CeilingCrawl.cpp
-    src/states/CeilingCrawl.h
-    src/Background.cpp
-    src/Background.h
+        src/Shader.cpp
+        src/Shader.h
+        src/Shanghai.cpp
+        src/Shanghai.h
+        src/ShanghaiStateMachine.cpp
+        src/ShanghaiStateMachine.h
+        src/states/ShanghaiStateMachineState.h
+        src/states/Standing.cpp
+        src/states/Standing.h
+        src/state.h
+        src/states/Walking.cpp
+        src/states/Walking.h
+        src/states/Sitting.cpp
+        src/states/Sitting.h
+        src/states/SittingAndLooking.cpp
+        src/states/SittingAndLooking.h
+        src/states/LieDown.cpp
+        src/states/LieDown.h
+        src/states/Crawling.cpp
+        src/states/Crawling.h
+        src/config/ShanghaiConfiguration.cpp
+        src/config/ShanghaiConfiguration.h
+        src/states/Ceiling.cpp
+        src/states/Ceiling.h
+        src/states/CeilingCrawl.cpp
+        src/states/CeilingCrawl.h
+        src/Background.cpp
+        src/Background.h
         src/gl.h
         src/states/Resist.cpp
         src/states/Resist.h
@@ -106,6 +109,7 @@ SET(SHANGHAI_SOURCE
         src/states/Falling.h
         src/states/Landed.cpp
         src/states/Landed.h
+        src/wayland/registry.h
 )
 
 add_executable(Shanghai
