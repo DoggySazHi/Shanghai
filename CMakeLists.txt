@@ -112,6 +112,12 @@ SET(SHANGHAI_SOURCE
         src/wayland/registry.h
         src/Random.h
         src/Random.cpp
+        src/states/Jump.cpp
+        src/states/Jump.h
+        src/states/WallHold.cpp
+        src/states/WallHold.h
+        src/states/WallClimb.cpp
+        src/states/WallClimb.h
 )
 
 add_executable(Shanghai

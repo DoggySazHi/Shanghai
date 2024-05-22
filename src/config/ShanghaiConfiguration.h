@@ -12,13 +12,14 @@ public:
     [[nodiscard]] inline uint32_t getLayer() const { return layer; }
     [[nodiscard]] inline float getFallingPortalProbability() const { return fallingPortalProbability; }
 private:
-    static constexpr const char *CONFIG_FILE = "shanghai.json";
+    static std::string getConfigPath();
     static ShanghaiConfiguration *instance;
 
     ShanghaiConfiguration();
     ~ShanghaiConfiguration();
     void serialize(Json::Value &root) const;
     void deserialize(const Json::Value &root);
+    void save(const std::string& configPath);
 
     uint32_t output = UINT32_MAX;
     bool enableBackground = false;

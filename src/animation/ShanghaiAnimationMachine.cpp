@@ -31,6 +31,8 @@ ShanghaiAnimationFrame &ShanghaiAnimationMachine::getFrame(uint64_t time) {
 
     for (auto& frame : frames) {
         if (elapsedTime < frame.duration * durationFactor) {
+            newFrame = lastFrame != &frame;
+            lastFrame = &frame;
             return frame;
         }
 
@@ -39,4 +41,8 @@ ShanghaiAnimationFrame &ShanghaiAnimationMachine::getFrame(uint64_t time) {
 
     // This should never happen
     throw std::runtime_error("Animation machine failed to get a frame - mukyu!");
+}
+
+bool ShanghaiAnimationMachine::isNewFrame() const {
+    return newFrame;
 }

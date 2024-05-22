@@ -1,6 +1,21 @@
 #include "ShanghaiConfiguration.h"
 
+#include <filesystem>
 #include <fstream>
+
+std::string ShanghaiConfiguration::getConfigPath() {
+    auto configHome = std::getenv("XDG_CONFIG_HOME");
+    if (configHome == nullptr) {
+        configHome = std::getenv("HOME");
+        if (configHome == nullptr) {
+            return "";
+        }
+
+        return std::string(configHome) + "/.config/shanghai/";
+    }
+
+    return std::string(configHome) + "/shanghai/";
+}
 
 ShanghaiConfiguration* ShanghaiConfiguration::instance = nullptr;
 
@@ -13,19 +28,27 @@ ShanghaiConfiguration *ShanghaiConfiguration::getInstance() {
 }
 
 ShanghaiConfiguration::ShanghaiConfiguration() {
-    std::ifstream file(CONFIG_FILE);
+    auto configPath = getConfigPath();
+    std::filesystem::create_directories(configPath);
+    configPath += "shanghai.json";
+
+    std::ifstream file(configPath);
+
     if (file.is_open()) {
         Json::Value root;
         file >> root;
         deserialize(root);
-    } else {
-        // Write default values
-        std::ofstream ofile(CONFIG_FILE);
-        Json::Value root;
-        serialize(root);
-        ofile << root;
-        ofile.close();
     }
+
+    save(configPath);
+}
+
+void ShanghaiConfiguration::save(const std::string& configPath) {
+    std::ofstream ofile(configPath);
+    Json::Value root;
+    serialize(root);
+    ofile << root;
+    ofile.close();
 }
 
 ShanghaiConfiguration::~ShanghaiConfiguration() {

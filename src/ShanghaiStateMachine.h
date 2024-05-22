@@ -14,12 +14,14 @@ enum class ShanghaiState {
     CEILING,
     CEILING_CRAWL,
     RESIST,
-    CLIMBING,
+    WALL_HOLD,
+    WALL_CLIMB,
     THROWING,
     CHEERING,
     DRAGGED,
     FALLING,
     LANDED,
+    JUMP
 };
 
 // Forward declaration

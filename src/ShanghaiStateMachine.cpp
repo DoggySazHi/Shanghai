@@ -12,6 +12,9 @@
 #include "states/Dragged.h"
 #include "states/Falling.h"
 #include "states/Landed.h"
+#include "states/Jump.h"
+#include "states/WallHold.h"
+#include "states/WallClimb.h"
 
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
@@ -24,12 +27,14 @@ ShanghaiStateMachine::ShanghaiStateMachine() {
     stateActions[ShanghaiState::CEILING] = new Ceiling();
     stateActions[ShanghaiState::CEILING_CRAWL] = new CeilingCrawl();
     stateActions[ShanghaiState::RESIST] = new Resist();
-//    stateActions[ShanghaiState::CLIMBING] = new Climbing();
+    stateActions[ShanghaiState::WALL_HOLD] = new WallHold();
+    stateActions[ShanghaiState::WALL_CLIMB] = new WallClimb();
 //    stateActions[ShanghaiState::THROWING] = new Throwing();
 //    stateActions[ShanghaiState::CHEERING] = new Cheering();
     stateActions[ShanghaiState::DRAGGED] = new Dragged();
     stateActions[ShanghaiState::FALLING] = new Falling();
     stateActions[ShanghaiState::LANDED] = new Landed();
+    stateActions[ShanghaiState::JUMP] = new Jump();
 }
 
 ShanghaiStateMachine::~ShanghaiStateMachine() {
