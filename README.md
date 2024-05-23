@@ -14,7 +14,7 @@ It's also CMake so you gotta do the usual `cmake . && make` dance.
 
 There is also primitive code for running it on other platforms (running on GLFW), but it's not really tested.
 Debug it at your own risk. It handles Windows' z-order and window management, but not much else.
-MacOS is also not supported, but it should be possible to run it on MacOS with some modifications (AppleScript?).
+MacOS is also not supported, but it should be possible to run it on macOS with some modifications (AppleScript?).
 
 ## Tasks
 - [x] Rewrite into C++ from `layer-shell.c`

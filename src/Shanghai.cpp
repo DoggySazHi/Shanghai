@@ -117,11 +117,9 @@ void Shanghai::draw(EGLState* state) {
     // Renders a square
     static const GLfloat vertices[] = {
             0, 0, 0.0, 0.0,
+            0, 128, 0.0, 1.0,
             128, 0, 1.0, 0.0,
             128, 128, 1.0, 1.0,
-            128, 128, 1.0, 1.0,
-            0, 128, 0.0, 1.0,
-            0, 0, 0.0, 0.0,
     };
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
@@ -137,7 +135,7 @@ void Shanghai::draw(EGLState* state) {
     shader->setUniform("shanghaiHFlip", flip);
     glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
