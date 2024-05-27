@@ -74,6 +74,8 @@ SET(SHANGHAI_SOURCE
         src/Shader.h
         src/Shanghai.cpp
         src/Shanghai.h
+        src/Tsukasa.cpp
+        src/Tsukasa.h
         src/ShanghaiStateMachine.cpp
         src/ShanghaiStateMachine.h
         src/states/ShanghaiStateMachineState.h

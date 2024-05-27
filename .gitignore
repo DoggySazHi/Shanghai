@@ -8,6 +8,7 @@ Shanghai
 *.cmake
 *.ninja*
 Testing
+shanghai.json
 
 # Windows dependencies
 include/glad

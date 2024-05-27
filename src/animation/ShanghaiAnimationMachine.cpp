@@ -1,6 +1,11 @@
 #include <stdexcept>
 #include "ShanghaiAnimationMachine.h"
 
+ShanghaiAnimationMachine::ShanghaiAnimationMachine() {
+    this->frames = std::vector<ShanghaiAnimationFrame>();
+    totalDuration = 1;
+}
+
 ShanghaiAnimationMachine::ShanghaiAnimationMachine(const std::vector<ShanghaiAnimationFrame> &frames) {
     this->frames = frames;
 
@@ -17,7 +22,9 @@ ShanghaiAnimationMachine::ShanghaiAnimationMachine(const std::vector<ShanghaiAni
 }
 
 void ShanghaiAnimationMachine::setAnimationFactor(uint32_t factor) {
+    totalDuration /= durationFactor;
     this->durationFactor = factor;
+    totalDuration *= durationFactor;
 }
 
 void ShanghaiAnimationMachine::setReferenceTime(uint64_t time) {

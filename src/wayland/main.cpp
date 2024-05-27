@@ -16,6 +16,7 @@
 #include "registry.h"
 #include "layer.h"
 #include "../Random.h"
+#include "../Tsukasa.h"
 
 
 // All Wayland runtime variables
@@ -54,6 +55,7 @@ EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
 std::vector<Shanghai*> shanghais;
+Tsukasa* tsukasa;
 
 static void draw();
 
@@ -89,6 +91,10 @@ static void draw() {
 
     for (auto& shanghai : shanghais) {
         shanghai->draw(&eglState);
+    }
+
+    if (tsukasa != nullptr) {
+        tsukasa->draw(&eglState);
     }
 
     Shanghai::updateCursor(shanghais, &eglState);
@@ -187,10 +193,9 @@ int main() {
         background = new Background();
     }
 
-    shanghais.push_back(new Shanghai());
 //    ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING, ShanghaiState::JUMP};
     ShanghaiState states[] = {ShanghaiState::WALL_HOLD, ShanghaiState::WALL_CLIMB};
-    for (int i = 0; i < 40; ++i) {
+    for (int i = 0; i < 1; ++i) {
         auto* shanghai = new Shanghai();
         shanghai->positionX = i * 128;
         shanghais.push_back(shanghai);
@@ -198,6 +203,8 @@ int main() {
         shanghai->getStateMachine()->setState(states[(int) (Random::rand() * std::size(states))]);
         shanghai->flip = Random::rand() < 0.5;
     }
+
+    tsukasa = new Tsukasa();
 
     std::cout << "Starting output...\n";
 

@@ -21,8 +21,10 @@ struct ShanghaiAnimationFrame {
 
 class ShanghaiAnimationMachine {
 public:
+    ShanghaiAnimationMachine();
+
     explicit ShanghaiAnimationMachine(const std::vector<ShanghaiAnimationFrame>& frames);
-    ShanghaiAnimationFrame& getFrame(uint64_t time);
+    [[nodiscard]] ShanghaiAnimationFrame& getFrame(uint64_t time);
     void setAnimationFactor(uint32_t factor);
     void setReferenceTime(uint64_t time);
     [[nodiscard]] bool isNewFrame() const;

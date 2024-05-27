@@ -11,6 +11,7 @@
 #include "../Background.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "EGLWaylandContext.h"
+#include "../Tsukasa.h"
 
 extern struct wl_egl_window *egl_window;
 extern struct wlr_egl_surface *egl_surface;
@@ -18,6 +19,7 @@ extern struct wlr_egl_surface *egl_surface;
 extern bool run_display;
 extern EGLWaylandContext* eglWaylandContext;
 extern std::vector<Shanghai*> shanghais;
+extern Tsukasa* tsukasa;
 extern Background* background;
 
 static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h) {
@@ -30,6 +32,10 @@ static void layer_surface_configure([[maybe_unused]] void *data, struct zwlr_lay
 
     if (background != nullptr) {
         background->setScreenGeometry(eglState.width, eglState.height);
+    }
+
+    if (tsukasa != nullptr) {
+        tsukasa->setScreenGeometry(eglState.width, eglState.height);
     }
 
     if (egl_window) {
