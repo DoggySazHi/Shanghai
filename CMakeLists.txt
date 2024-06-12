@@ -7,55 +7,67 @@ set(CMAKE_CXX_STANDARD 23)
 if (UNIX AND NOT APPLE)
     message(STATUS "Configuring for Linux")
 
-    add_custom_target(
-            WeTrickCMakeIntoGeneratingOurStuff ALL
-            DEPENDS
+    if (DEFINED ENV{WAYLAND_DISPLAY})
+        message(STATUS "Wayland display detected; configuring for Wayland")
+
+        add_custom_target(
+                WeTrickCMakeIntoGeneratingOurStuff ALL
+                DEPENDS
                 ${CMAKE_CURRENT_SOURCE_DIR}/include/reimu.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/include/marisa.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/include/sanae.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/include/youmu.h
-    )
+        )
 
-    # Create the header file for the layer shell protocol
-    add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/reimu.h ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h
-            COMMAND wayland-scanner client-header ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h && sed -i 's/namespace/wlrNamespace/g' ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h && sed -i 's/a wlrNamespace/a namespace/g' ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml
-    )
+        # Create the header file for the layer shell protocol
+        add_custom_command(
+                OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/reimu.h ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h
+                COMMAND wayland-scanner client-header ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h && sed -i 's/namespace/wlrNamespace/g' ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h && sed -i 's/a wlrNamespace/a namespace/g' ${CMAKE_CURRENT_SOURCE_DIR}/include/wlr-layer-shell-unstable-v1-client-protocol.h
+                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml
+        )
 
-    # Create the C file for the layer shell protocol
-    add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/marisa.h ${CMAKE_CURRENT_SOURCE_DIR}/protogen/wlr-layer-shell-unstable-v1.c
-            COMMAND wayland-scanner private-code ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml ${CMAKE_CURRENT_SOURCE_DIR}/protogen/wlr-layer-shell-unstable-v1.c
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml
-    )
+        # Create the C file for the layer shell protocol
+        add_custom_command(
+                OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/marisa.h ${CMAKE_CURRENT_SOURCE_DIR}/protogen/wlr-layer-shell-unstable-v1.c
+                COMMAND wayland-scanner private-code ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml ${CMAKE_CURRENT_SOURCE_DIR}/protogen/wlr-layer-shell-unstable-v1.c
+                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/protocol/wlr-layer-shell-unstable-v1.xml
+        )
 
-    # Create the header file for the xdg shell protocol
-    add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/sanae.h ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg-shell-client-protocol.h
-            COMMAND wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg-shell-client-protocol.h
-            DEPENDS /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
-    )
+        # Create the header file for the xdg shell protocol
+        add_custom_command(
+                OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/sanae.h ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg-shell-client-protocol.h
+                COMMAND wayland-scanner client-header /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${CMAKE_CURRENT_SOURCE_DIR}/include/xdg-shell-client-protocol.h
+                DEPENDS /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+        )
 
-    # Create the C file for the xdg shell protocol
-    add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/youmu.h ${CMAKE_CURRENT_SOURCE_DIR}/protogen/xdg-shell-client-protocol.c
-            COMMAND wayland-scanner private-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${CMAKE_CURRENT_SOURCE_DIR}/protogen/xdg-shell-client-protocol.c
-            DEPENDS /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
-    )
+        # Create the C file for the xdg shell protocol
+        add_custom_command(
+                OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/youmu.h ${CMAKE_CURRENT_SOURCE_DIR}/protogen/xdg-shell-client-protocol.c
+                COMMAND wayland-scanner private-code /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${CMAKE_CURRENT_SOURCE_DIR}/protogen/xdg-shell-client-protocol.c
+                DEPENDS /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+        )
 
-    SET(SYSTEM_SPECIFIC_SOURCE
-            protogen/wlr-layer-shell-unstable-v1.c
-            protogen/xdg-shell-client-protocol.c
-            src/wayland/main.cpp
-            src/wayland/EGLWaylandContext.cpp
-            src/wayland/EGLWaylandContext.h
-            src/wayland/keyboard.h
-            src/wayland/pointer.h
-            src/wayland/layer.h
-            src/wayland/seat.h
-            src/wayland/surface.h
-    )
+        SET(SYSTEM_SPECIFIC_SOURCE
+                protogen/wlr-layer-shell-unstable-v1.c
+                protogen/xdg-shell-client-protocol.c
+                src/wayland/main.cpp
+                src/wayland/EGLWaylandContext.cpp
+                src/wayland/EGLWaylandContext.h
+                src/wayland/keyboard.h
+                src/wayland/pointer.h
+                src/wayland/layer.h
+                src/wayland/seat.h
+                src/wayland/surface.h
+        )
+
+    else ()
+        message(STATUS "Wayland display not detected; configuring for X11")
+
+        SET(SYSTEM_SPECIFIC_SOURCE
+                libs/glad/glad.c
+                src/x11/main.cpp
+        )
+    endif ()
 elseif (WIN32)
     message(STATUS "Configuring for Windows")
 
@@ -118,6 +130,7 @@ SET(SHANGHAI_SOURCE
         src/states/WallHold.h
         src/states/WallClimb.cpp
         src/states/WallClimb.h
+        src/x11/main.cpp
 )
 
 add_executable(Shanghai
@@ -126,21 +139,39 @@ add_executable(Shanghai
 )
 
 if (UNIX AND NOT APPLE)
-    target_compile_definitions(Shanghai
-            PRIVATE
-            __WAYLAND__
-    )
+    if (DEFINED ENV{WAYLAND_DISPLAY})
+        target_compile_definitions(Shanghai
+                PRIVATE
+                __WAYLAND__
+        )
 
-    target_link_libraries(Shanghai
-            wayland-client
-            wayland-server
-            wayland-cursor
-            wayland-egl
-            EGL
-            GLESv2
-            wlroots
-            jsoncpp
-    )
+        target_link_libraries(Shanghai
+                wayland-client
+                wayland-server
+                wayland-cursor
+                wayland-egl
+                EGL
+                GLESv2
+                wlroots
+                jsoncpp
+        )
+    else ()
+        find_package(X11 REQUIRED)
+        find_package(OpenGL REQUIRED)
+        find_package(glfw3 REQUIRED)
+
+        target_compile_definitions(Shanghai
+                PRIVATE
+                __X11__
+        )
+
+        target_link_libraries(Shanghai
+                X11
+                jsoncpp
+                OpenGL::GL
+                glfw
+        )
+    endif ()
 elseif (WIN32)
     find_package(OpenGL REQUIRED)
     find_package(jsoncpp CONFIG REQUIRED)

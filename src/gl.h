@@ -12,6 +12,11 @@
 
 #include <GLES2/gl2.h>
 
+#elif __X11__
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #endif
 
 #endif //SHANGHAI_GL_H

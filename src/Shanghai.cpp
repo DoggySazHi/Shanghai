@@ -9,7 +9,9 @@ extern struct wl_cursor* left_ptr_cursor;
 extern struct wl_cursor* pointer_cursor;
 
 GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
+#ifdef __WAYLAND__
 wl_region* Shanghai::inputRegion = nullptr;
+#endif
 Shader* Shanghai::shader = nullptr;
 
 Shanghai::Shanghai() {
@@ -21,9 +23,11 @@ Shanghai::Shanghai() {
         }
     }
 
+#ifdef __WAYLAND__
     if (inputRegion == nullptr) {
         inputRegion = wl_compositor_create_region(compositor);
     }
+#endif
 
     // Generate textures
     if (textures[0] == 0) {
