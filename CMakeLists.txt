@@ -167,6 +167,8 @@ if (UNIX AND NOT APPLE)
 
         target_link_libraries(Shanghai
                 X11
+                Xfixes
+                Xext
                 jsoncpp
                 OpenGL::GL
                 glfw

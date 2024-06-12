@@ -3,14 +3,17 @@
 #include "Shanghai.h"
 #include "stb_image.h"
 
+GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
+#ifdef __WAYLAND__
 extern struct wl_compositor *compositor;
 extern struct wl_surface *wl_surface, *cursor_surface;
 extern struct wl_cursor* left_ptr_cursor;
 extern struct wl_cursor* pointer_cursor;
-
-GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
-#ifdef __WAYLAND__
 wl_region* Shanghai::inputRegion = nullptr;
+#elif __X11__
+extern struct GLFWwindow* glfwWindow;
+_XDisplay* Shanghai::xDisplay = nullptr;
+unsigned long Shanghai::xWindow = 0;
 #endif
 Shader* Shanghai::shader = nullptr;
 
@@ -27,6 +30,14 @@ Shanghai::Shanghai() {
     if (inputRegion == nullptr) {
         inputRegion = wl_compositor_create_region(compositor);
     }
+#elif __X11__
+//    if (xDisplay == nullptr) {
+//        xDisplay = glfwGetX11Display();
+//        xWindow = glfwGetX11Window(glfwWindow);
+//        auto xServerRegion = XFixesCreateRegion(xDisplay, &inputRegion, 1);
+//        XFixesSetWindowShapeRegion(xDisplay, xWindow, ShapeInput, 0, 0, xServerRegion);
+//        XFixesDestroyRegion(xDisplay, xServerRegion);
+//    }
 #endif
 
     // Generate textures
@@ -109,6 +120,22 @@ void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* s
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
+#elif __X11__
+    auto region = XCreateRegion();
+
+    XRectangle rect;
+    rect.width = SHANGHAI_TEXTURE_WIDTH;
+    rect.height = SHANGHAI_TEXTURE_WIDTH;
+
+    for (auto shanghai : shanghais) {
+        // Allow the cursor to be over any Shanghais (allows them to be yeeted)
+        rect.x = (short) shanghai->positionX;
+        rect.y = (short) (state->height - (short) shanghai->positionY - SHANGHAI_TEXTURE_WIDTH);
+        XUnionRectWithRegion(&rect, region, region);
+    }
+
+    XShapeCombineRegion(xDisplay, xWindow, ShapeInput, 0, 0, region, ShapeSet);
+    XDestroyRegion(region);
 #endif
 }
 

@@ -10,6 +10,9 @@
 #ifdef __WAYLAND__
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
+#elif __X11__
+#include <X11/extensions/shape.h>
+#include <X11/extensions/Xfixes.h>
 #endif
 
 #define SHANGHAI_TEXTURE_COUNT 46
@@ -36,6 +39,9 @@ public:
 private:
 #ifdef __WAYLAND__
     static wl_region *inputRegion;
+#elif __X11__
+    static _XDisplay* xDisplay;
+    static unsigned long xWindow;
 #endif
 
     static Shader* shader;

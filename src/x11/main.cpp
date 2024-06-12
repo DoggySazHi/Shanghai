@@ -37,7 +37,6 @@ void resizeHandler([[maybe_unused]] GLFWwindow* window, const int width, const i
 }
 
 void mouseHandler([[maybe_unused]] GLFWwindow* window, double xpos, double ypos) {
-    // TODO
     eglState.curX = (int) xpos;
     eglState.curY = (int) ypos;
 }
@@ -109,14 +108,23 @@ int main() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, GLFW_TRUE);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+//    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     auto* videoMode = glfwGetVideoMode(monitor);
     eglState.width = videoMode->width;
     eglState.height = videoMode->height;
 
     glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", nullptr, nullptr);
+
+    glfwHideWindow(glfwWindow);
+    XMoveResizeWindow(glfwGetX11Display(), glfwGetX11Window(glfwWindow), 0, 0, eglState.width, eglState.height);
+//    glfwSetWindowAttrib(glfwWindow, GLFW_RESIZABLE, GLFW_FALSE);
+
+//    XSetWindowBorderWidth(glfwGetX11Display(), glfwGetX11Window(glfwWindow), 0);
+
+    glfwShowWindow(glfwWindow);
 
     if (glfwWindow == nullptr)
     {
