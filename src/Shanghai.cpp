@@ -22,7 +22,7 @@ Shanghai::Shanghai() {
         shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
 
         if (!shader->isCompiled()) {
-            throw std::runtime_error("Failed to compile shader");
+            throw std::runtime_error("Failed to compile shader1");
         }
     }
 

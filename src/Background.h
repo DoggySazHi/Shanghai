@@ -14,7 +14,13 @@ public:
     void setScreenGeometry(uint32_t width, uint32_t height);
     static uint64_t getTime();
 private:
-    Shader* shader;
+    int frame = 0;
+    float startTime = 0;
+
+    Shader* shader1;
+    Shader* shader2;
+    Shader* shader3;
+
     uint32_t displayWidth = 0, displayHeight = 0;
 };
 
