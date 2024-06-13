@@ -8,5 +8,5 @@ in vec2 TexCoord;
 uniform sampler2D shanghaiTexture;
 
 void main() {
-   FragColor = texture(shanghaiTexture, TexCoord);
+    FragColor = texture(shanghaiTexture, TexCoord);
 }
