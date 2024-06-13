@@ -56,7 +56,11 @@ void mouseButtonHandler(GLFWwindow* window, int button, int action, [[maybe_unus
 void draw() {
     glViewport(0, 0, (int) eglState.width, (int) eglState.height);
 
-    glClearColor(0, 0, 0, 0.0f);
+    if (config->isBackgroundEnabled()) {
+        glClearColor(0, 0, 0, 0.0f);
+    } else {
+        glClearColor(0, 0, 0, 1.0f);
+    }
     glClear(GL_COLOR_BUFFER_BIT);
 
     if (eglState.curX != -1 && eglState.curY != -1) {
