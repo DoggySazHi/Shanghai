@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Background.h"
 #include "Random.h"
+#include "glad/glad.h"
 
 Background::Background() {
     shader1 = new Shader("shader/background.vert", "shader/background1.frag", "shader/backgroundcommon.frag");

@@ -72,16 +72,16 @@ static void draw() {
 
     glViewport(0, 0, (int) eglState.width, (int) eglState.height);
 
-    glClearColor(0, 0, 0, 0.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (eglState.curX != -1 && eglState.curY != -1) {
-        glEnable(GL_SCISSOR_TEST);
-        glScissor(eglState.curX, (int) (eglState.height - eglState.curY), 5, 5);
-        glClearColor(0, 0, 0, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_SCISSOR_TEST);
-    }
+//    glClearColor(0, 0, 0, 0.0f);
+//    glClear(GL_COLOR_BUFFER_BIT);
+//
+//    if (eglState.curX != -1 && eglState.curY != -1) {
+//        glEnable(GL_SCISSOR_TEST);
+//        glScissor(eglState.curX, (int) (eglState.height - eglState.curY), 5, 5);
+//        glClearColor(0, 0, 0, 0.0f);
+//        glClear(GL_COLOR_BUFFER_BIT);
+//        glDisable(GL_SCISSOR_TEST);
+//    }
 
     if (config->isBackgroundEnabled()) {
         background->draw(&eglState);
