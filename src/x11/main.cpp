@@ -119,8 +119,8 @@ int main() {
 //    auto* videoMode = glfwGetVideoMode(monitor);
 //    eglState.width = videoMode->width;
 //    eglState.height = videoMode->height;
-    eglState.width = 640;
-    eglState.height = 360;
+    eglState.width = 1280;
+    eglState.height = 960;
 
     glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", nullptr, nullptr);
 

@@ -1,12 +1,14 @@
 #version 320 es
 precision highp float;
+precision highp int;
 
-in vec2 fragCoord;
+in highp vec2 fragCoord;
 
-uniform vec2 iResolution;
-uniform float iTime;
-uniform vec4 iDate;
-uniform int iFrame;
+uniform highp vec2 iResolution;
+uniform highp float iTime;
+uniform highp vec4 iDate;
+uniform highp int iFrame;
+uniform highp float iRng;
 
 // ================
 // World Data

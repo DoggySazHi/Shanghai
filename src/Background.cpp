@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <iostream>
 #include "Background.h"
+#include "Random.h"
 
 Background::Background() {
     shader1 = new Shader("shader/background.vert", "shader/background1.frag", "shader/backgroundcommon.frag");
@@ -73,6 +74,7 @@ void Background::drawInternal(Shader *shader) {
     shader->setUniform("iTime", 0, 0, 0, startTime - ((float) getTime() / 1000.0f));
     shader->setUniform("iDate", (float) getTime() / 1000.0f);
     shader->setUniform("iFrame", frame++);
+    shader->setUniform("iRng", Random::rand());
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

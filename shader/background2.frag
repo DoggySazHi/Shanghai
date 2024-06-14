@@ -15,12 +15,12 @@ vec2 uvToPos(vec2 uv)
 vec2 getNormal(vec2 p)
 {
     return normalize(vec2(
-    texture(iChannel0, posToUv(p+vec2(0.01,0.0))).z-texture(iChannel0, posToUv(p+vec2(-0.01,0.0))).z,
-    texture(iChannel0, posToUv(p+vec2(0.0,0.01))).z-texture(iChannel0, posToUv(p+vec2(0.0,-0.01))).z
+        texture(iChannel0, posToUv(p+vec2(0.01,0.0))).z-texture(iChannel0, posToUv(p+vec2(-0.01,0.0))).z,
+        texture(iChannel0, posToUv(p+vec2(0.0,0.01))).z-texture(iChannel0, posToUv(p+vec2(0.0,-0.01))).z
     ));
 }
 float rand(vec2 co){
-    return fract(sin(dot(co.xy+iTime-iDate.w*0.001,vec2(12.9898,78.233))) * 43758.5453);
+    return iRng;
 }
 vec2 randDir(vec2 pos)
 {
@@ -83,7 +83,7 @@ vec3 getSample(vec2 pos)
     return march(pos, randDir(pos))*0.5+march(pos, randDir(pos+1.0))*0.5;
 }
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out highp vec4 fragColor;
 
 void main()
 {
