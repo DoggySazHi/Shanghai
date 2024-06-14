@@ -87,8 +87,13 @@ layout(location = 0) out vec4 fragColor;
 
 void main()
 {
+    if (iFrame < 10) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
     // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = fragCoord.xy/iResolution.xy;
+    vec2 uv = gl_FragCoord.xy/iResolution.xy;
     vec4 prev = texture(iChannel1, uv);
     // Time varying pixel color
     vec4 sdfSample = texture(iChannel0, uv);

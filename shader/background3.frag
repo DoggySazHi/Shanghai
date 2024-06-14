@@ -22,7 +22,12 @@ layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    vec2 uv = fragCoord.xy/iResolution.xy;
+    if (iFrame < 20) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    vec2 uv = gl_FragCoord.xy/iResolution.xy;
     vec4 image = texture(iChannel0, uv) / float(iFrame + 1);
     fragColor = image;
 }

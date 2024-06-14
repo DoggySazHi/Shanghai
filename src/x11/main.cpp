@@ -56,20 +56,20 @@ void mouseButtonHandler(GLFWwindow* window, int button, int action, [[maybe_unus
 void draw() {
     glViewport(0, 0, (int) eglState.width, (int) eglState.height);
 
-    if (config->isBackgroundEnabled()) {
-        glClearColor(0, 0, 0, 0.0f);
-    } else {
-        glClearColor(0, 0, 0, 1.0f);
-    }
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (eglState.curX != -1 && eglState.curY != -1) {
-        glEnable(GL_SCISSOR_TEST);
-        glScissor(eglState.curX, (int) (eglState.height - eglState.curY), 5, 5);
-        glClearColor(0, 0, 0, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_SCISSOR_TEST);
-    }
+//    if (config->isBackgroundEnabled()) {
+//        glClearColor(0, 0, 0, 1.0f);
+//    } else {
+//        glClearColor(0, 0, 0, 1.0f);
+//    }
+//    glClear(GL_COLOR_BUFFER_BIT);
+//
+//    if (eglState.curX != -1 && eglState.curY != -1) {
+//        glEnable(GL_SCISSOR_TEST);
+//        glScissor(eglState.curX, (int) (eglState.height - eglState.curY), 5, 5);
+//        glClearColor(0, 0, 0, 1.0f);
+//        glClear(GL_COLOR_BUFFER_BIT);
+//        glDisable(GL_SCISSOR_TEST);
+//    }
 
     if (config->isBackgroundEnabled()) {
         background->draw(&eglState);
@@ -112,13 +112,15 @@ int main() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+//    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
 //    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    auto* videoMode = glfwGetVideoMode(monitor);
-    eglState.width = videoMode->width;
-    eglState.height = videoMode->height;
+//    auto* videoMode = glfwGetVideoMode(monitor);
+//    eglState.width = videoMode->width;
+//    eglState.height = videoMode->height;
+    eglState.width = 640;
+    eglState.height = 360;
 
     glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", nullptr, nullptr);
 
