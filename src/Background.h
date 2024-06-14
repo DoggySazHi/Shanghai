@@ -14,8 +14,16 @@ public:
     void setScreenGeometry(uint32_t width, uint32_t height);
     static uint64_t getTime();
 private:
+    void drawInternal(Shader* shader);
+
     int frame = 0;
     float startTime = 0;
+
+    bool texturesInitialized = false;
+    GLuint frameBuffers[2] = {0};
+    GLuint depthBuffers[2] = {0};
+    GLuint renderedTextures[3] = {0};
+    bool bufferFlip = false;
 
     Shader* shader1;
     Shader* shader2;

@@ -1,6 +1,9 @@
 // ================
 // Raymarch
 // ================
+uniform highp sampler2D iChannel0;
+uniform highp sampler2D iChannel1;
+
 vec2 posToUv(vec2 pos)
 {
     return ((pos/10.0)*iResolution.y+iResolution.xy*0.5)/iResolution.xy;
@@ -80,12 +83,12 @@ vec3 getSample(vec2 pos)
     return march(pos, randDir(pos))*0.5+march(pos, randDir(pos+1.0))*0.5;
 }
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 void main()
 {
     // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
+    vec2 uv = fragCoord.xy/iResolution.xy;
     vec4 prev = texture(iChannel1, uv);
     // Time varying pixel color
     vec4 sdfSample = texture(iChannel0, uv);

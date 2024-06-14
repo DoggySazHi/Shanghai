@@ -166,6 +166,8 @@ int main() {
 
     shanghai = new Shanghai();
 
+    resizeHandler(glfwWindow, (int) eglState.width, (int) eglState.height);
+
     std::cout << "Starting output...\n";
 
     while (!glfwWindowShouldClose(glfwWindow))

@@ -17,11 +17,12 @@ vec2 pix(int x, int y)
     return vec2(x,y)/iResolution.xy;
 }
 
-out vec4 fragColor;
+uniform highp sampler2D iChannel0;
+layout(location = 0) out vec4 fragColor;
 
 void main()
 {
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
-    vec4 image = texture(iChannel0, uv);
-    fragColor = image / float(iFrame+1);
+    vec2 uv = fragCoord.xy/iResolution.xy;
+    vec4 image = texture(iChannel0, uv) / float(iFrame + 1);
+    fragColor = image;
 }

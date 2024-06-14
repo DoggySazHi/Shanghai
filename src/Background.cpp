@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 #include "Background.h"
 
 Background::Background() {
@@ -15,10 +16,34 @@ Background::Background() {
 
 Background::~Background() {
     delete shader1;
+    delete shader2;
+    delete shader3;
 }
 
 void Background::draw(EGLState* state) {
-    shader1->use();
+    if (!texturesInitialized) {
+        setScreenGeometry(state->width, state->height);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[0]);
+    drawInternal(shader1);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderedTextures[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, renderedTextures[1]);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[1]);
+    shader2->setUniform("iChannel0", 0);
+    shader2->setUniform("iChannel1", 1);
+    drawInternal(shader2);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, renderedTextures[1]);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    shader3->setUniform("iChannel0", 1);
+    drawInternal(shader3);
+}
+
+void Background::drawInternal(Shader *shader) {
+    shader->use();
 
     // Rendered as a full quad
     static const GLfloat vertices[] = {
@@ -31,12 +56,12 @@ void Background::draw(EGLState* state) {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), vertices);
     glEnableVertexAttribArray(0);
 
-    shader1->setUniform("iResolution", (float) displayWidth, (float) displayHeight);
-    shader1->setUniform("iTime", 0, 0, 0, startTime - ((float) getTime() / 1000.0f));
-    shader1->setUniform("iDate", (float) getTime() / 1000.0f);
-    shader1->setUniform("iFrame", frame++);
+    shader->setUniform("iResolution", (float) displayWidth, (float) displayHeight);
+    shader->setUniform("iTime", 0, 0, 0, startTime - ((float) getTime() / 1000.0f));
+    shader->setUniform("iDate", (float) getTime() / 1000.0f);
+    shader->setUniform("iFrame", frame++);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 5);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     glDisableVertexAttribArray(0);
 }
@@ -44,6 +69,60 @@ void Background::draw(EGLState* state) {
 void Background::setScreenGeometry(uint32_t width, uint32_t height) {
     displayWidth = width;
     displayHeight = height;
+
+    if (texturesInitialized || displayWidth == 0 || displayHeight == 0) return;
+
+    glGenTextures(1, &renderedTextures[0]);
+    glBindTexture(GL_TEXTURE_2D, renderedTextures[0]);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (int) displayWidth, (int) displayHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+//    glGenRenderbuffers(1, &depthBuffers[0]);
+//    glBindRenderbuffer(GL_RENDERBUFFER, depthBuffers[0]);
+//    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (int) displayWidth, (int) displayHeight);
+//    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glGenFramebuffers(1, &frameBuffers[0]);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[0]);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTextures[0], 0);
+//    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffers[0]);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("Failed to create framebuffer A " + std::to_string(glCheckFramebufferStatus(GL_FRAMEBUFFER)));
+    }
+
+    glGenTextures(1, &renderedTextures[1]);
+    glBindTexture(GL_TEXTURE_2D, renderedTextures[1]);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (int) displayWidth, (int) displayHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+//    glGenRenderbuffers(1, &depthBuffers[1]);
+//    glBindRenderbuffer(GL_RENDERBUFFER, depthBuffers[1]);
+//    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (int) displayWidth, (int) displayHeight);
+//    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glGenFramebuffers(1, &frameBuffers[1]);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[1]);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, renderedTextures[1], 0);
+//    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffers[1]);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("Failed to create framebuffer B " + std::to_string(glCheckFramebufferStatus(GL_FRAMEBUFFER)));
+    }
+
+    texturesInitialized = true;
 }
 
 /**
