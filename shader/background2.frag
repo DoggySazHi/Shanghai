@@ -68,7 +68,7 @@ vec3 march(vec2 pos, vec2 dir)
         }
     }
     vec3 light = vec3(0);
-    for(int i = hits; i >= 0; i--)
+    for(int i = hits - 1; i >= 0; i--)
     {
         light += hitColors[i] / (pow(dists[i]*0.1+2.0, 2.0)*0.1);
     }
