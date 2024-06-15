@@ -130,7 +130,6 @@ SET(SHANGHAI_SOURCE
         src/states/WallHold.h
         src/states/WallClimb.cpp
         src/states/WallClimb.h
-        src/x11/main.cpp
 )
 
 add_executable(Shanghai
