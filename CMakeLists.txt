@@ -58,6 +58,7 @@ if (UNIX AND NOT APPLE)
                 src/wayland/layer.h
                 src/wayland/seat.h
                 src/wayland/surface.h
+                libs/glad/glad.c
         )
 
     else ()
