@@ -9,6 +9,7 @@
 #include "../config/ShanghaiConfiguration.h"
 #include "../Background.h"
 #include "../Shanghai.h"
+#include "../Random.h"
 
 // Windows stuff
 GLFWwindow* glfwWindow;
@@ -17,7 +18,7 @@ GLFWwindow* glfwWindow;
 EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
-Shanghai* shanghai;
+std::vector<Shanghai*> shanghais;
 
 // Callback handlers
 
@@ -25,7 +26,7 @@ void resizeHandler([[maybe_unused]] GLFWwindow* window, const int width, const i
     eglState.width = width;
     eglState.height = height;
 
-    if (shanghai != nullptr) {
+    for (auto& shanghai : shanghais) {
         shanghai->setScreenGeometry(eglState.width, eglState.height);
     }
 
@@ -71,7 +72,11 @@ void draw() {
         background->draw(&eglState);
     }
 
-    shanghai->draw(&eglState);
+    for (const auto& shanghai : shanghais) {
+        shanghai->draw(&eglState);
+    }
+
+    Shanghai::updateCursor(shanghais, &eglState);
 
     glfwSwapBuffers(glfwWindow);
 }
@@ -110,21 +115,10 @@ int main() {
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-//    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     auto* videoMode = glfwGetVideoMode(monitor);
-    eglState.width = videoMode->width;
-    eglState.height = videoMode->height;
-
-    glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", nullptr, nullptr);
-
-    glfwHideWindow(glfwWindow);
-    XMoveResizeWindow(glfwGetX11Display(), glfwGetX11Window(glfwWindow), 0, 0, eglState.width, eglState.height);
-//    glfwSetWindowAttrib(glfwWindow, GLFW_RESIZABLE, GLFW_FALSE);
-
-//    XSetWindowBorderWidth(glfwGetX11Display(), glfwGetX11Window(glfwWindow), 0);
-
-    glfwShowWindow(glfwWindow);
+    glfwWindow = glfwCreateWindow(videoMode->width, videoMode->height, "Shanghai", nullptr, nullptr);
 
     if (glfwWindow == nullptr)
     {
@@ -160,9 +154,23 @@ int main() {
         background = new Background();
     }
 
-    shanghai = new Shanghai();
+    shanghais.push_back(new Shanghai());
+    ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING, ShanghaiState::JUMP};
+    // ShanghaiState states[] = {ShanghaiState::WALL_HOLD, ShanghaiState::WALL_CLIMB};
+    for (int i = 0; i < 40; ++i) {
+        auto* shanghai = new Shanghai();
+        shanghai->positionX = i * 128;
+        shanghais.push_back(shanghai);
+
+        shanghai->getStateMachine()->setState(states[(int) (Random::rand() * std::size(states))]);
+        shanghai->flip = Random::rand() < 0.5;
+    }
 
     std::cout << "Starting output...\n";
+
+    resizeHandler(glfwWindow, videoMode->width, videoMode->height);
+    XSetWindowBorderWidth(glfwGetX11Display(), glfwGetX11Window(glfwWindow), 0);
+    XMoveResizeWindow(glfwGetX11Display(), glfwGetX11Window(glfwWindow), 0, 0, videoMode->width, videoMode->height);
 
     while (!glfwWindowShouldClose(glfwWindow))
     {

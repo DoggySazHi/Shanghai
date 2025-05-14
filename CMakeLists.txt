@@ -66,6 +66,7 @@ if (UNIX AND NOT APPLE)
         SET(SYSTEM_SPECIFIC_SOURCE
                 libs/glad/glad.c
                 src/x11/main.cpp
+                src/x11/wrapper.c
         )
     endif ()
 elseif (WIN32)

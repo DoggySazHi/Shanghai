@@ -1,6 +1,9 @@
 #include <stdexcept>
 
 #include "Shanghai.h"
+
+#include <iostream>
+
 #include "stb_image.h"
 
 GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
@@ -31,13 +34,10 @@ Shanghai::Shanghai() {
         inputRegion = wl_compositor_create_region(compositor);
     }
 #elif __X11__
-//    if (xDisplay == nullptr) {
-//        xDisplay = glfwGetX11Display();
-//        xWindow = glfwGetX11Window(glfwWindow);
-//        auto xServerRegion = XFixesCreateRegion(xDisplay, &inputRegion, 1);
-//        XFixesSetWindowShapeRegion(xDisplay, xWindow, ShapeInput, 0, 0, xServerRegion);
-//        XFixesDestroyRegion(xDisplay, xServerRegion);
-//    }
+    if (xDisplay == nullptr) {
+        xDisplay = glfwGetX11Display();
+        xWindow = glfwGetX11Window(glfwWindow);
+    }
 #endif
 
     // Generate textures
@@ -121,6 +121,16 @@ void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* s
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
 #elif __X11__
+    // Hard-coded 20 frame delay in terms of recalculating the X11 clickable region
+    // Running every frame causes XShapeCombineRegion to lag
+    static uint8_t frameCounter = 0;
+    if (frameCounter > 20) {
+        frameCounter = 0;
+    } else {
+        frameCounter++;
+        return;
+    }
+
     auto region = XCreateRegion();
 
     XRectangle rect;
