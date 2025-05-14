@@ -131,6 +131,22 @@ void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* s
         return;
     }
 
+    // Update X11 cursor position
+    Window rootReturn, childReturn;
+    int rootXReturn, rootYReturn, winXReturn, winYReturn;
+    unsigned int maskReturn;
+
+    bool isInWindow = XQueryPointer(xDisplay, xWindow, &rootReturn, &childReturn, &rootXReturn, &rootYReturn, &winXReturn, &winYReturn, &maskReturn);
+
+    if (!isInWindow) {
+        state->curX = rootXReturn;
+        state->curY = rootYReturn;
+    } else {
+        state->curX = winXReturn;
+        state->curY = winYReturn;
+    }
+
+    // Handle clickable regions
     auto region = XCreateRegion();
 
     XRectangle rect;

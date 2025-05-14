@@ -1,4 +1,7 @@
 #include "Standing.h"
+
+#include <iostream>
+
 #include "../Random.h"
 
 void Standing::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
@@ -17,6 +20,13 @@ void Standing::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* 
     if (shanghai->positionX < 0 && !shanghai->flip || shanghai->positionX + SHANGHAI_TEXTURE_WIDTH >= static_cast<float>(state->width) && shanghai->flip) {
         if (Random::rand() < 0.001) {
             machine->setState(ShanghaiState::WALL_CLIMB);
+        }
+    }
+
+    // Cursor is over Shanghai
+    if (shanghai->positionX < state->curX && state->curX < shanghai->positionX + SHANGHAI_TEXTURE_WIDTH && state->height - state->curY < shanghai->positionY + SHANGHAI_TEXTURE_WIDTH * 2) {
+        if (Random::rand() < 0.1) {
+            machine->setState(ShanghaiState::JUMP);
         }
     }
 
