@@ -8,9 +8,9 @@ void WallClimb::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine 
         animationMachine.setReferenceTime(time);
 
         if (shanghai->positionX < static_cast<float>(state->width) / 2) {
-            shanghai->positionX -= 40;
+            shanghai->positionX = 0 - 40;
         } else {
-            shanghai->positionX += 40;
+            shanghai->positionX = static_cast<float>(state->width) - SHANGHAI_TEXTURE_WIDTH + 40;
         }
     }
 
