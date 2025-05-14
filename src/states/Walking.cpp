@@ -1,4 +1,5 @@
 #include "Walking.h"
+#include "../Random.h"
 
 void Walking::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
     auto time = Shanghai::getTime();
@@ -21,4 +22,29 @@ void Walking::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* m
     }
 
     shanghai->positionX += speedToVelocity(shanghai, speed);
+
+    // Check if Shanghai is walking to a wall
+    if (shanghai->positionX < 0 || shanghai->positionX + SHANGHAI_TEXTURE_WIDTH >= static_cast<float>(state->width)) {
+        machine->setState(ShanghaiState::STANDING);
+    }
+
+    // Shanghai is bored
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::SITTING_AND_LOOKING);
+    }
+
+    // Shanghai is still bored
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::SITTING);
+    }
+
+    // Shanghai wants to crawl
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::CRAWLING);
+    }
+
+    // Shanghai wants to stop
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::STANDING);
+    }
 }

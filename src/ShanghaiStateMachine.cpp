@@ -16,6 +16,7 @@
 #include "states/WallHold.h"
 #include "states/WallClimb.h"
 
+Shanghai* ShanghaiStateMachine::draggedShanghai = nullptr;
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
     stateActions[ShanghaiState::STANDING] = new Standing();
@@ -59,9 +60,15 @@ void ShanghaiStateMachine::frame(Shanghai* shanghai, EGLState* eglState) {
     }
 
     // Handle mouse inputs
-    if (shanghai->inShanghai(eglState) && state != ShanghaiState::DRAGGED && eglState->buttons) {
+    if (shanghai->inShanghai(eglState) && state != ShanghaiState::DRAGGED && eglState->buttons && !draggedShanghai) {
+        draggedShanghai = shanghai;
+
         startDrag(eglState->curX, eglState->curY);
     } else if (state == ShanghaiState::DRAGGED && !eglState->buttons) {
+        if (draggedShanghai == shanghai) {
+            draggedShanghai = nullptr;
+        }
+
         endDrag();
     }
 }

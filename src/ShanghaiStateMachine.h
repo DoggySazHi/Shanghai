@@ -43,10 +43,10 @@ public:
 private:
     bool isNewState = true;
     bool isNewStateSet = false;
+    static Shanghai* draggedShanghai;
     uint32_t dragStartX = 0, dragStartY = 0;
     ShanghaiState state = ShanghaiState::SITTING_AND_LOOKING;
     std::unordered_map<ShanghaiState, ShanghaiStateMachineState*> stateActions;
-
 };
 
 

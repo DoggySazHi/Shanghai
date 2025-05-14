@@ -32,7 +32,7 @@ public:
     [[nodiscard]] ShanghaiStateMachine* getStateMachine() const;
 
     float positionX = 0, positionY = 0;
-    bool flip = true;
+    bool flip = true; // false: left, true: right
     [[nodiscard]] bool inShanghai(EGLState* state) const;
 
     static void updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* state);
