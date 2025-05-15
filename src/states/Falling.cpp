@@ -23,6 +23,15 @@ void Falling::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
     velocity = std::min(velocity + FALLING_STEP_ACC, FALLING_MAX_VEL);
     shanghai->positionY -= velocity;
 
+    auto nextXPosition = shanghai->positionX += shanghai->velocityX;
+    if (nextXPosition > 0 && nextXPosition < state->width - SHANGHAI_TEXTURE_WIDTH) {
+        shanghai->positionX = nextXPosition;
+    } else if (nextXPosition < 0) {
+        shanghai->positionX = 0;
+    } else if (nextXPosition > state->width - SHANGHAI_TEXTURE_WIDTH) {
+        shanghai->positionX = (float) (state->width - SHANGHAI_TEXTURE_WIDTH);
+    }
+
     if (shanghai->positionY < 0) {
         // Try to portal
         if (!portalState && Random::rand() < ShanghaiConfiguration::getInstance()->getFallingPortalProbability()) {

@@ -16,15 +16,15 @@ void Dragged::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
     shanghai->positionY = (float) (state->height - state->curY - SHANGHAI_TEXTURE_WIDTH / 1.2);
 
     int difference = state->curX - lastCurX;
-    differenceSmoothed = alpha * (float) difference + (1 - alpha) * differenceSmoothed;
+    shanghai->velocityX = alpha * (float) difference + (1 - alpha) * shanghai->velocityX;
 
-    if (differenceSmoothed > 20) {
+    if (shanghai->velocityX > 20) {
         shanghai->setTexture(8);
-    } else if (differenceSmoothed > 5) {
+    } else if (shanghai->velocityX > 5) {
         shanghai->setTexture(6);
-    } else if (differenceSmoothed > -5) {
+    } else if (shanghai->velocityX > -5) {
         shanghai->setTexture(0);
-    } else if (differenceSmoothed > -20) {
+    } else if (shanghai->velocityX > -20) {
         shanghai->setTexture(7);
     } else {
         shanghai->setTexture(9);

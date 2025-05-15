@@ -7,13 +7,11 @@
 class Dragged : public ShanghaiStateMachineState {
 public:
     void frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *machine) override;
-
 private:
 #define DRAGGED_STEP_TIME 133
     uint64_t lastCycleTime = 0;
     int lastCurX = 0;
-    float differenceSmoothed = 0;
-    float alpha = 0.1f;
+    float alpha = 0.05f;
 };
 
 

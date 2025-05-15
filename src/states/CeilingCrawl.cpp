@@ -1,39 +1,52 @@
 #include "CeilingCrawl.h"
+#include "../Random.h"
 
 void CeilingCrawl::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *machine) {
     auto time = Shanghai::getTime();
 
-    // We only care when the step time has passed
-    if (time - lastCycleTime < CEILING_CRAWL_STEP_TIME) {
-        return;
+    if (machine->isNewStateFlag()) {
+        if (shanghai->positionX > static_cast<float>(state->width) - SHANGHAI_TEXTURE_WIDTH - 20) {
+            shanghai->flip = true;
+            shanghai->positionX = static_cast<float>(state->width) - SHANGHAI_TEXTURE_WIDTH + 10;
+        } else if (shanghai->positionX < 20) {
+            shanghai->flip = false;
+            shanghai->positionX = -10;
+        } else {
+            shanghai->flip = Random::rand() < 0.5;
+        }
+
+        animationMachine.setReferenceTime(time);
+
+        shanghai->positionY = state->height - SHANGHAI_TEXTURE_WIDTH + 30;
     }
 
-    lastCycleTime = time;
-    step = (step + 1) % 14;
+    auto frame = animationMachine.getFrame(time);
+    if (!animationMachine.isNewFrame()) return;
 
-    // The original textures are facing to the right, so the velocities are inverted
+    shanghai->setTexture(frame.textureIndex);
 
-    if (step >= 0 && step <= 3) {
-        shanghai->setTexture(24);
-    } else if (step == 4) {
-        shanghai->setTexture(24);
-        shanghai->positionX += speedToVelocity(shanghai, -1.0f * speed);
-    } else if (step == 5) {
-        shanghai->setTexture(22);
-        shanghai->positionX += speedToVelocity(shanghai, -1.0f * speed);
-    } else if (step == 6) {
-        shanghai->setTexture(23);
-        shanghai->positionX += speedToVelocity(shanghai, -1.0f * speed);
-    } else if (step >= 7 && step <= 10) {
-        shanghai->setTexture(23);
-    } else if (step == 11) {
-        shanghai->setTexture(23);
-        shanghai->positionX += speedToVelocity(shanghai, -2.0f * speed);
-    } else if (step == 12) {
-        shanghai->setTexture(22);
-        shanghai->positionX += speedToVelocity(shanghai, -2.0f * speed);
-    } else if (step == 13) {
-        shanghai->setTexture(24);
-        shanghai->positionX += speedToVelocity(shanghai, -2.0f * speed);
+    if (!shanghai->flip) {
+        shanghai->positionX += frame.translationX;
+    } else {
+        shanghai->positionX -= frame.translationX;
+    }
+
+    // Shanghai should fall if she tries to go to a wall
+    if (shanghai->positionX < -20) {
+        shanghai->positionX = 0;
+        machine->setState(ShanghaiState::FALLING);
+    } else if (shanghai->positionX > static_cast<float>(state->width) - SHANGHAI_TEXTURE_WIDTH + 20) {
+        shanghai->positionX = static_cast<float>(state->width) - SHANGHAI_TEXTURE_WIDTH;
+        machine->setState(ShanghaiState::FALLING);
+    }
+
+    // Shanghai falls from the wall
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::FALLING);
+    }
+
+    // Shanghai stops crawling
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::CEILING);
     }
 }
