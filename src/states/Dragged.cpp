@@ -18,6 +18,11 @@ void Dragged::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
     int difference = state->curX - lastCurX;
     shanghai->velocityX = alpha * (float) difference + (1 - alpha) * shanghai->velocityX;
 
+    // Shanghai will resist if dragged and not moving
+    if (lastCycleTime == time && shanghai->velocityX < 1.0f && shanghai->velocityX > -1.0f) {
+        machine->setState(ShanghaiState::RESIST);
+    }
+
     if (shanghai->velocityX > 20) {
         shanghai->setTexture(8);
     } else if (shanghai->velocityX > 5) {
