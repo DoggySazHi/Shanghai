@@ -13,4 +13,9 @@ void Jump::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *mach
         shanghai->positionY = 0;
         machine->setState(ShanghaiState::STANDING);
     }
+
+    // Check if mouse is in bounding box of Shanghai
+    if (shanghai->inShanghai(state)) {
+        machine->stealCursor(shanghai);
+    }
 }

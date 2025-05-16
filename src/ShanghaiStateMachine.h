@@ -35,15 +35,21 @@ public:
     [[nodiscard]] ShanghaiState getState() const;
     void setState(ShanghaiState newState);
     [[nodiscard]] bool isNewStateFlag() const;
+
     void startDrag(uint32_t x, uint32_t y);
     void endDrag();
+
+    [[nodiscard]] static Shanghai* getShanghaiStealingCursor() { return shanghaiStoleCursor; }
+    static void stealCursor(Shanghai *shanghai);
+    static void releaseCursor();
 
     void frame(Shanghai *shanghai, EGLState *state);
 
 private:
     bool isNewState = true;
     bool isNewStateSet = false;
-    static Shanghai* draggedShanghai;
+    static Shanghai* draggedShanghai; // Shanghai being dragged
+    static Shanghai* shanghaiStoleCursor; // Shanghai that stole the cursor
     uint32_t dragStartX = 0, dragStartY = 0;
     ShanghaiState state = ShanghaiState::SITTING_AND_LOOKING;
     std::unordered_map<ShanghaiState, ShanghaiStateMachineState*> stateActions;

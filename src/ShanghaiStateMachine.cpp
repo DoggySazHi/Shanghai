@@ -19,6 +19,7 @@
 #include "states/WallClimb.h"
 
 Shanghai* ShanghaiStateMachine::draggedShanghai = nullptr;
+Shanghai* ShanghaiStateMachine::shanghaiStoleCursor = nullptr;
 
 ShanghaiStateMachine::ShanghaiStateMachine() {
     stateActions[ShanghaiState::STANDING] = new Standing();
@@ -80,11 +81,25 @@ void ShanghaiStateMachine::startDrag(uint32_t x, uint32_t y) {
     dragStartX = x;
     dragStartY = y;
     setState(ShanghaiState::DRAGGED);
+
+    shanghaiStoleCursor = nullptr;
 }
 
 void ShanghaiStateMachine::endDrag() {
     // Special case, regardless of the current state, we always end dragging
     setState(ShanghaiState::FALLING);
+}
+
+void ShanghaiStateMachine::stealCursor(Shanghai *shanghai) {
+    if (shanghaiStoleCursor) {
+        return;
+    }
+
+    shanghaiStoleCursor = shanghai;
+}
+
+void ShanghaiStateMachine::releaseCursor() {
+    shanghaiStoleCursor = nullptr;
 }
 
 void ShanghaiStateMachine::setState(ShanghaiState newState) {

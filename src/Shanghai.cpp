@@ -162,6 +162,12 @@ void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* s
 
     XShapeCombineRegion(xDisplay, xWindow, ShapeInput, 0, 0, region, ShapeSet);
     XDestroyRegion(region);
+
+    // Steal the cursor if applicable
+    auto* robber = ShanghaiStateMachine::getShanghaiStealingCursor();
+    if (robber != nullptr) {
+        XWarpPointer(xDisplay, None, xWindow, 0, 0, 0, 0, (int) robber->positionX + SHANGHAI_TEXTURE_WIDTH / 2, (int) (state->height - (int) robber->positionY - SHANGHAI_TEXTURE_WIDTH / 2));
+    }
 #endif
 }
 
