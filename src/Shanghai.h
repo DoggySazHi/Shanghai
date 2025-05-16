@@ -32,7 +32,7 @@ public:
     [[nodiscard]] ShanghaiStateMachine* getStateMachine() const;
 
     float positionX = 0, positionY = 0;
-    float velocityX = 0; // only used by dragging and falling states
+    float velocityX = 0, velocityY = 0; // only used by dragging and falling states
     bool flip = true; // false: left, true: right
     [[nodiscard]] bool inShanghai(EGLState* state) const;
 

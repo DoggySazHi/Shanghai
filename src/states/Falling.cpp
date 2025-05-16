@@ -7,7 +7,7 @@ void Falling::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
 
     if (machine->isNewStateFlag()) {
         lastCycleTime = time - FALLING_STEP_TIME;
-        velocity = 0;
+        velocity = shanghai->velocityY;
     }
 
 //    Technically a bug before I fixed it (below is revised, see previous commits)
@@ -27,9 +27,11 @@ void Falling::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
     if (nextXPosition > 0 && nextXPosition < state->width - SHANGHAI_TEXTURE_WIDTH) {
         shanghai->positionX = nextXPosition;
     } else if (nextXPosition < 0) {
-        shanghai->positionX = 0;
+        shanghai->positionX *= -0.02f;
+        shanghai->velocityX = -shanghai->velocityX;
     } else if (nextXPosition > state->width - SHANGHAI_TEXTURE_WIDTH) {
         shanghai->positionX = (float) (state->width - SHANGHAI_TEXTURE_WIDTH);
+        shanghai->velocityX *= -0.02f;
     }
 
     if (shanghai->positionY < 0) {

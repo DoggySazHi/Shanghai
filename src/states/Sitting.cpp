@@ -2,7 +2,7 @@
 #include "../Random.h"
 
 void Sitting::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* machine) {
-    shanghai->setTexture(11);
+    shanghai->setTexture(11 - 1);
 
     auto time = Shanghai::getTime();
 
@@ -27,7 +27,12 @@ void Sitting::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* m
 
     // Shanghai is still bored
     if (Random::rand() < 0.001) {
-        machine->setState(ShanghaiState::SITTING);
+        machine->setState(ShanghaiState::STANDING);
+    }
+
+    // Shanghai is still bored
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::CHEERING);
     }
 
     // Shanghai needs to move

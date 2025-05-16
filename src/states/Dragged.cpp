@@ -5,6 +5,10 @@ void Dragged::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
 
     if (machine->isNewStateFlag()) {
         lastCycleTime = time - DRAGGED_STEP_TIME;
+        shanghai->velocityX = 0;
+        shanghai->velocityY = 0;
+        lastCurX = state->curX;
+        lastCurY = state->curY;
     }
 
     if (time - lastCycleTime > DRAGGED_STEP_TIME) {
@@ -15,8 +19,11 @@ void Dragged::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
     shanghai->positionX = (float) (state->curX - SHANGHAI_TEXTURE_WIDTH / 2.0);
     shanghai->positionY = (float) (state->height - state->curY - SHANGHAI_TEXTURE_WIDTH / 1.2);
 
-    int difference = state->curX - lastCurX;
-    shanghai->velocityX = alpha * (float) difference + (1 - alpha) * shanghai->velocityX;
+    int differenceX = state->curX - lastCurX;
+    shanghai->velocityX = alpha * (float) differenceX + (1 - alpha) * shanghai->velocityX;
+
+    int differenceY = state->curY - lastCurY;
+    shanghai->velocityY = alpha * (float) differenceY + (1 - alpha) * shanghai->velocityY;
 
     // Shanghai will resist if dragged and not moving
     if (lastCycleTime == time && shanghai->velocityX < 1.0f && shanghai->velocityX > -1.0f) {
@@ -36,4 +43,5 @@ void Dragged::frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *m
     }
 
     lastCurX = state->curX;
+    lastCurY = state->curY;
 }

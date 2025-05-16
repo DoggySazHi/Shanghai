@@ -8,11 +8,13 @@
 #include "states/Crawling.h"
 #include "states/Ceiling.h"
 #include "states/CeilingCrawl.h"
+#include "states/Cheering.h"
 #include "states/Resist.h"
 #include "states/Dragged.h"
 #include "states/Falling.h"
 #include "states/Landed.h"
 #include "states/Jump.h"
+#include "states/Throwing.h"
 #include "states/WallHold.h"
 #include "states/WallClimb.h"
 
@@ -30,8 +32,8 @@ ShanghaiStateMachine::ShanghaiStateMachine() {
     stateActions[ShanghaiState::RESIST] = new Resist();
     stateActions[ShanghaiState::WALL_HOLD] = new WallHold();
     stateActions[ShanghaiState::WALL_CLIMB] = new WallClimb();
-//    stateActions[ShanghaiState::THROWING] = new Throwing();
-//    stateActions[ShanghaiState::CHEERING] = new Cheering();
+    stateActions[ShanghaiState::THROWING] = new Throwing();
+    stateActions[ShanghaiState::CHEERING] = new Cheering();
     stateActions[ShanghaiState::DRAGGED] = new Dragged();
     stateActions[ShanghaiState::FALLING] = new Falling();
     stateActions[ShanghaiState::LANDED] = new Landed();
@@ -60,11 +62,11 @@ void ShanghaiStateMachine::frame(Shanghai* shanghai, EGLState* eglState) {
     }
 
     // Handle mouse inputs
-    if (shanghai->inShanghai(eglState) && state != ShanghaiState::DRAGGED && eglState->buttons && !draggedShanghai) {
+    if (shanghai->inShanghai(eglState) && state != ShanghaiState::DRAGGED && state != ShanghaiState::RESIST && eglState->buttons && !draggedShanghai) {
         draggedShanghai = shanghai;
 
         startDrag(eglState->curX, eglState->curY);
-    } else if (state == ShanghaiState::DRAGGED && !eglState->buttons) {
+    } else if ((state == ShanghaiState::DRAGGED || state == ShanghaiState::RESIST) && !eglState->buttons) {
         if (draggedShanghai == shanghai) {
             draggedShanghai = nullptr;
         }

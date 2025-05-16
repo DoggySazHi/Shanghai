@@ -155,10 +155,11 @@ int main() {
     }
 
     auto shanghai = new Shanghai();
-    shanghai->positionX = -40;
-    shanghai->positionY = 1300;
-    shanghai->flip = false;
-    shanghai->getStateMachine()->setState(ShanghaiState::WALL_CLIMB);
+    // shanghai->positionX = -40;
+    // shanghai->positionY = 1300;
+    // shanghai->flip = false;
+    // shanghai->getStateMachine()->setState(ShanghaiState::WALL_CLIMB);
+    shanghai->getStateMachine()->setState(ShanghaiState::THROWING);
     shanghais.push_back(shanghai);
     // ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING, ShanghaiState::JUMP};
     // // ShanghaiState states[] = {ShanghaiState::WALL_HOLD, ShanghaiState::WALL_CLIMB};

@@ -131,6 +131,10 @@ SET(SHANGHAI_SOURCE
         src/states/WallHold.h
         src/states/WallClimb.cpp
         src/states/WallClimb.h
+        src/states/Cheering.cpp
+        src/states/Cheering.h
+        src/states/Throwing.cpp
+        src/states/Throwing.h
 )
 
 add_executable(Shanghai

@@ -40,6 +40,11 @@ void Standing::frame(EGLState* state, Shanghai *shanghai, ShanghaiStateMachine* 
         machine->setState(ShanghaiState::SITTING);
     }
 
+    // Shanghai is still bored
+    if (Random::rand() < 0.001) {
+        machine->setState(ShanghaiState::THROWING);
+    }
+
     // Shanghai needs to move
     if (Random::rand() < 0.001) {
         shanghai->flip = Random::rand() < 0.5;

@@ -10,8 +10,8 @@ public:
     void frame(EGLState *state, Shanghai *shanghai, ShanghaiStateMachine *machine) override;
 
 private:
-    int lastCurX = 0;
-    float alpha = 0.05f;
+    int lastCurX = 0, lastCurY = 0;
+    float alpha = 0.04f;
     ShanghaiAnimationMachine animationMachine = ShanghaiAnimationMachine
             ({
                      ShanghaiAnimationFrame(5 - 1, 5),

@@ -10,8 +10,8 @@ public:
 private:
 #define DRAGGED_STEP_TIME 133
     uint64_t lastCycleTime = 0;
-    int lastCurX = 0;
-    float alpha = 0.05f;
+    int lastCurX = 0, lastCurY = 0;
+    float alpha = 0.04f;
 };
 
 
