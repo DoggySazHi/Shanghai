@@ -5,13 +5,14 @@ out vec4 FragColor;
 
 in vec2 TexCoord;
 
-uniform sampler2D atlas;
+uniform sampler2D fontTexture;
+uniform vec4 color;
 
 void main() {
-    vec4 pixel = texture(atlas, TexCoord);
+    vec4 pixel = texture(fontTexture, TexCoord);
     if (pixel.r < 0.1) {
         discard;
     }
 
-    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    FragColor = color / 255.0f;
 }
