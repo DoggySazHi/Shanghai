@@ -135,6 +135,10 @@ SET(SHANGHAI_SOURCE
         src/states/Cheering.h
         src/states/Throwing.cpp
         src/states/Throwing.h
+        src/fonts/BDF.cpp
+        src/fonts/BDF.h
+        src/fonts/FontRenderer.cpp
+        src/fonts/FontRenderer.h
 )
 
 add_executable(Shanghai

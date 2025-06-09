@@ -178,7 +178,7 @@ void Shanghai::draw(EGLState* state) {
 
     // Packed as [x, y, u, v]
     // Renders a square
-    static const GLfloat vertices[] = {
+    static constexpr GLfloat vertices[] = {
             0, 0, 0.0, 0.0,
             0, 128, 0.0, 1.0,
             128, 0, 1.0, 0.0,

@@ -9,6 +9,7 @@
 #include "../config/ShanghaiConfiguration.h"
 #include "../Background.h"
 #include "../Shanghai.h"
+#include "../fonts/FontRenderer.h"
 #include "../Random.h"
 
 // Windows stuff
@@ -18,6 +19,7 @@ GLFWwindow* glfwWindow;
 EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
+FontRenderer* fontRenderer;
 std::vector<Shanghai*> shanghais;
 
 // Callback handlers
@@ -155,6 +157,7 @@ int main() {
     }
 
     auto shanghai = new Shanghai();
+    fontRenderer = new FontRenderer("TamzenForPowerline10x20r.bdf");
     // shanghai->positionX = -40;
     // shanghai->positionY = 1300;
     // shanghai->flip = false;
