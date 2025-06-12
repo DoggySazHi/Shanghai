@@ -19,7 +19,11 @@ Shader* Shanghai::shader = nullptr;
 
 Shanghai::Shanghai() {
     if (shader == nullptr) {
+#ifndef __APPLE__
         shader = new Shader("shader/shanghai.vert", "shader/shanghai.frag");
+#else
+        shader = new Shader("shader/shanghai.macos.vert", "shader/shanghai.macos.frag");
+#endif
 
         if (!shader->isCompiled()) {
             throw std::runtime_error("Failed to compile shader1");

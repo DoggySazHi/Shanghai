@@ -5,9 +5,15 @@
 #include "glad/glad.h"
 
 Background::Background() {
+#ifndef __APPLE__
     shader1 = new Shader("shader/background.vert", "shader/background1.frag", "shader/backgroundcommon.frag");
     shader2 = new Shader("shader/background.vert", "shader/background2.frag", "shader/backgroundcommon.frag");
     shader3 = new Shader("shader/background.vert", "shader/background3.frag", "shader/backgroundcommon.frag");
+#else
+    shader1 = new Shader("shader/background.macos.vert", "shader/background1.macos.frag", "shader/backgroundcommon.macos.frag");
+    shader2 = new Shader("shader/background.macos.vert", "shader/background2.macos.frag", "shader/backgroundcommon.macos.frag");
+    shader3 = new Shader("shader/background.macos.vert", "shader/background3.macos.frag", "shader/backgroundcommon.macos.frag");
+#endif
 
     if (!shader1->isCompiled() || !shader2->isCompiled() || !shader3->isCompiled()) {
         throw std::runtime_error("Failed to compile shaders");
