@@ -76,6 +76,13 @@ elseif (WIN32)
             libs/glad/glad.c
             src/windows/main.cpp
     )
+elseif (APPLE)
+    message(STATUS "Configuring for macOS")
+
+    SET(SYSTEM_SPECIFIC_SOURCE
+            libs/glad/glad.macos.c
+            src/macos/main.cpp
+    )
 else ()
     message(FATAL_ERROR "Unsupported platform")
 endif ()
@@ -199,6 +206,20 @@ elseif (WIN32)
     target_include_directories(Shanghai
             PRIVATE
             ${CMAKE_SOURCE_DIR}/libs/glfw-win/include)
+elseif (APPLE)
+    find_package(OpenGL REQUIRED)
+    find_package(glfw3 REQUIRED)
+    find_package(jsoncpp CONFIG REQUIRED)
+
+    target_compile_definitions(Shanghai
+            PRIVATE
+            __APPLE__
+    )
+
+    target_link_libraries(Shanghai
+            glfw
+            JsonCpp::JsonCpp
+            OpenGL::GL)
 endif ()
 
 target_compile_definitions(Shanghai

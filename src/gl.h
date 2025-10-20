@@ -8,6 +8,13 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+#elif __APPLE__
+
+#include <glad/glad.macos.h>
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_COCOA
+#include <GLFW/glfw3native.h>
+
 #elif __WAYLAND__
 
 #include <GLES2/gl2.h>
