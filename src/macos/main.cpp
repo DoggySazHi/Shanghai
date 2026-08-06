@@ -125,7 +125,7 @@ int main() {
     eglState.width = videoMode->width;
     eglState.height = videoMode->height - 40; // Remove 40 pixels to account for menu bar
 
-    glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", nullptr, nullptr);
+    glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", monitor, nullptr);
 
     if (glfwWindow == nullptr)
     {

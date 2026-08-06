@@ -120,7 +120,7 @@ int main() {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     auto* videoMode = glfwGetVideoMode(monitor);
-    glfwWindow = glfwCreateWindow(videoMode->width, videoMode->height, "Shanghai", nullptr, nullptr);
+    glfwWindow = glfwCreateWindow(videoMode->width, videoMode->height, "Shanghai", monitor, nullptr);
 
     if (glfwWindow == nullptr)
     {
