@@ -3,6 +3,7 @@
 
 
 #include <chrono>
+#include <vector>
 #include "Shader.h"
 #include "state.h"
 #include "ShanghaiStateMachine.h"
@@ -43,6 +44,9 @@ private:
 #elif __X11__
     static _XDisplay* xDisplay;
     static unsigned long xWindow;
+#elif __APPLE__
+    static GLuint shanghaiVAO;
+    static GLuint shanghaiVBO;
 #endif
 
     static Shader* shader;

@@ -17,6 +17,9 @@ wl_region* Shanghai::inputRegion = nullptr;
 extern struct GLFWwindow* glfwWindow;
 _XDisplay* Shanghai::xDisplay = nullptr;
 unsigned long Shanghai::xWindow = 0;
+#elif __APPLE__
+GLuint Shanghai::shanghaiVAO = 0;
+GLuint Shanghai::shanghaiVBO = 0;
 #endif
 Shader* Shanghai::shader = nullptr;
 
@@ -38,6 +41,14 @@ Shanghai::Shanghai() {
         xDisplay = glfwGetX11Display();
         xWindow = glfwGetX11Window(glfwWindow);
     }
+#elif __APPLE__
+    glGenVertexArrays(1, &shanghaiVAO);
+    glGenBuffers(1, &shanghaiVBO);
+
+    glBindVertexArray(shanghaiVAO);
+
+    
+
 #endif
 
     // Generate textures
@@ -184,8 +195,11 @@ void Shanghai::draw(EGLState* state) {
             128, 128, 1.0, 1.0,
     };
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
+    glBindVertexArray(shanghaiVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, shanghaiVBO);
+
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
     glEnableVertexAttribArray(1);

@@ -57,6 +57,9 @@ GLuint Shader::compileShader(const char *shaderSource, GLenum shaderType) {
     // Read shader code
     std::string shaderCode((std::istreambuf_iterator<char>(vertexShaderFile)), std::istreambuf_iterator<char>());
     vertexShaderFile.close();
+#ifdef __APPLE__
+    shaderCode.replace(shaderCode.find("#version 320 es"), sizeof("#version 320 es"), "#version 330 core");
+#endif
     const char* shaderSourceIndirection = shaderCode.c_str();
 
     // Compile shader
