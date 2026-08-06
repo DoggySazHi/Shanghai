@@ -71,7 +71,6 @@ Shanghai::Shanghai() {
 }
 
 Shanghai::~Shanghai() {
-    delete shader;
     glDeleteTextures(SHANGHAI_TEXTURE_COUNT, textures);
     delete stateMachine;
 }

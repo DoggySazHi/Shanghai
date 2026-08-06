@@ -162,10 +162,10 @@ void FontRenderer::renderCharacter(const EGLState* state, char character, int x,
 
     // Render the character as a quad
     GLfloat vertices[] = {
-        (float) (x), (float) (y), (float) (texture.offsetX - texture.width), (float) texture.offsetY,
-        (float) (x), (float) (y + texture.height), (float) (texture.offsetX - texture.width), (float) (texture.offsetY + texture.height),
-        (float) (x + texture.width), (float) (y), (float) (texture.offsetX), (float) texture.offsetY,
-        (float) (x + texture.width), (float) (y + texture.height), (float) (texture.offsetX), (float) (texture.offsetY + texture.height),
+        0.0f, 0.0f, (float) (texture.offsetX - texture.width), (float) texture.offsetY,
+        0.0f, (float) texture.height, (float) (texture.offsetX - texture.width), (float) (texture.offsetY + texture.height),
+        (float) texture.width, 0.0f, (float) texture.offsetX, (float) texture.offsetY,
+        (float) texture.width, (float) texture.height, (float) texture.offsetX, (float) (texture.offsetY + texture.height),
     };
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
@@ -180,10 +180,25 @@ void FontRenderer::renderCharacter(const EGLState* state, char character, int x,
     glDisableVertexAttribArray(1);
 }
 
-
 void FontRenderer::renderString(const EGLState* state, const std::string& str, int x, int y, int r = 255, int g = 255, int b = 255, int a = 255) const {
+    int curX = x;
+    int curY = y;
+
     for (char character : str) {
-        renderCharacter(state, character, x, y, r, g, b, a);
-        x += positionMap.at(character).width / 2; // Move to the next character position
+        auto it = positionMap.find(character);
+
+        if (it == positionMap.end()) {
+            // If the character is not found, skip it
+            continue;
+        }
+
+        if (character == '\n') {
+            curX = x; // Reset X position for new line
+            curY += it->second.height; // Move down by line height
+            continue;
+        }
+
+        renderCharacter(state, character, curX, curY, r, g, b, a);
+        curX += it->second.width; // Move to the next character position
     }
 }

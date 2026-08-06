@@ -24,7 +24,7 @@ private:
     static Shader* shader; // Shader to use for rendering
     BDF* font; // Font to render
     std::unordered_map<char, FontTexture> positionMap; // Map of character to atlas position
-    GLuint atlasTexture; // Texture atlas for the font
+    GLuint atlasTexture = 0; // Texture atlas for the font
 };
 
 

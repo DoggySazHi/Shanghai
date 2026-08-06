@@ -11,6 +11,7 @@
 #include "../Shanghai.h"
 #include "../fonts/FontRenderer.h"
 #include "../Random.h"
+#include "../9patch/NinePatch.h"
 
 // Windows stuff
 GLFWwindow* glfwWindow;
@@ -20,6 +21,7 @@ EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
 FontRenderer* fontRenderer;
+NinePatch* ninePatch;
 std::vector<Shanghai*> shanghais;
 
 // Callback handlers
@@ -77,6 +79,8 @@ void draw() {
     for (const auto& shanghai : shanghais) {
         shanghai->draw(&eglState);
     }
+
+    ninePatch->render(&eglState, 200, 100, 100, 100);
 
     Shanghai::updateCursor(shanghais, &eglState);
 
@@ -158,6 +162,7 @@ int main() {
 
     auto shanghai = new Shanghai();
     fontRenderer = new FontRenderer("TamzenForPowerline10x20r.bdf");
+    ninePatch = new NinePatch("img/message.png", 12, 12, 12, 12);
     // shanghai->positionX = -40;
     // shanghai->positionY = 1300;
     // shanghai->flip = false;

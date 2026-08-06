@@ -139,6 +139,8 @@ SET(SHANGHAI_SOURCE
         src/fonts/BDF.h
         src/fonts/FontRenderer.cpp
         src/fonts/FontRenderer.h
+        src/9patch/NinePatch.cpp
+        src/9patch/NinePatch.h
 )
 
 add_executable(Shanghai
