@@ -15,6 +15,8 @@ namespace platform {
     }
 
     void beforeMainLoop([[maybe_unused]] GLFWwindow* window,
+                        [[maybe_unused]] int x,
+                        [[maybe_unused]] int y,
                         [[maybe_unused]] int width,
                         [[maybe_unused]] int height) {
         // Nothing to do

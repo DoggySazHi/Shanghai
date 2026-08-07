@@ -9,7 +9,7 @@ void resizeHandler(GLFWwindow* window, int width, int height);
 namespace platform {
     void applyWindowHints();
     void afterWindowCreated(GLFWwindow* window, int width, int height);
-    void beforeMainLoop(GLFWwindow* window, int width, int height);
+    void beforeMainLoop(GLFWwindow* window, int x, int y, int width, int height);
     void installCallbacks(GLFWwindow* window);
     void afterSwap(GLFWwindow* window);
 }

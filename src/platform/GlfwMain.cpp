@@ -133,7 +133,11 @@ int main() {
     eglState.width = videoMode->width;
     eglState.height = videoMode->height;
 
-    glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", monitor, nullptr);
+    int monitorX, monitorY;
+    glfwGetMonitorPos(monitor, &monitorX, &monitorY);
+
+    // Monitor is nullptr because we actually want a borderless window, not full screen
+    glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", nullptr, nullptr);
 
     if (glfwWindow == nullptr)
     {
@@ -142,6 +146,7 @@ int main() {
         return -1;
     }
 
+    glfwSetWindowPos(glfwWindow, monitorX, monitorY);
     platform::afterWindowCreated(glfwWindow, (int) eglState.width, (int) eglState.height);
 
     glfwMakeContextCurrent(glfwWindow);
@@ -199,7 +204,7 @@ int main() {
     glfwGetFramebufferSize(glfwWindow, &framebufferWidth, &framebufferHeight);
     resizeHandler(glfwWindow, framebufferWidth, framebufferHeight);
 
-    platform::beforeMainLoop(glfwWindow, (int) eglState.width, (int) eglState.height);
+    platform::beforeMainLoop(glfwWindow, monitorX, monitorY, (int) eglState.width, (int) eglState.height);
 
     while (!glfwWindowShouldClose(glfwWindow))
     {

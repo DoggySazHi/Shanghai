@@ -16,10 +16,14 @@ namespace platform {
         // Nothing to do
     }
 
-    void beforeMainLoop(GLFWwindow* window, const int width, const int height) {
+    void beforeMainLoop(GLFWwindow* window,
+                        [[maybe_unused]] int x,
+                        [[maybe_unused]] int y,
+                        const int width,
+                        const int height) {
         // Force realignment of window after window creation
         XSetWindowBorderWidth(glfwGetX11Display(), glfwGetX11Window(window), 0);
-        XMoveResizeWindow(glfwGetX11Display(), glfwGetX11Window(window), 0, 0, width, height);
+        XMoveResizeWindow(glfwGetX11Display(), glfwGetX11Window(window), x, y, width, height);
     }
 
     void installCallbacks([[maybe_unused]] GLFWwindow* window) {
