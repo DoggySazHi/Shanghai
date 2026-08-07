@@ -12,6 +12,9 @@
 #include "../Random.h"
 #include "../9patch/NinePatch.h"
 
+// HiDPI compensation for mouse inputs
+double cursorScaleX = 1.0, cursorScaleY = 1.0;
+
 // Windows stuff
 GLFWwindow* glfwWindow;
 
@@ -25,9 +28,22 @@ std::vector<Shanghai*> shanghais;
 
 // Callback handlers
 
-void resizeHandler([[maybe_unused]] GLFWwindow* window, const int width, const int height) {
-    eglState.width = width;
-    eglState.height = height;
+void updateCursorScale(GLFWwindow* window) {
+    int windowWidth, windowHeight, framebufferWidth, framebufferHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+
+    cursorScaleX = windowWidth > 0 ? (double) framebufferWidth / windowWidth : 1.0;
+    cursorScaleY = windowHeight > 0 ? (double) framebufferHeight / windowHeight : 1.0;
+}
+
+void resizeHandler(GLFWwindow* window, [[maybe_unused]] const int width, [[maybe_unused]] const int height) {
+    int framebufferWidth, framebufferHeight;
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+
+    eglState.width = framebufferWidth;
+    eglState.height = framebufferHeight;
+    updateCursorScale(window);
 
     for (auto& shanghai : shanghais) {
         shanghai->setScreenGeometry(eglState.width, eglState.height);
@@ -37,17 +53,19 @@ void resizeHandler([[maybe_unused]] GLFWwindow* window, const int width, const i
         background->setScreenGeometry(eglState.width, eglState.height);
     }
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, framebufferWidth, framebufferHeight);
 }
 
 void mouseHandler([[maybe_unused]] GLFWwindow* window, double xpos, double ypos) {
-    eglState.curX = (int) xpos;
-    eglState.curY = (int) ypos;
+    eglState.curX = (int) (xpos * cursorScaleX);
+    eglState.curY = (int) (ypos * cursorScaleY);
 }
 
 void mouseButtonHandler(GLFWwindow* window, int button, int action, [[maybe_unused]] int mods) {
     double xx, yy;
     glfwGetCursorPos(window, &xx, &yy);
+    eglState.curX = (int) (xx * cursorScaleX);
+    eglState.curY = (int) (yy * cursorScaleY);
 
     if (action == GLFW_PRESS) {
         eglState.buttons = 1;
@@ -198,11 +216,8 @@ int main() {
 
     std::cout << "Starting output...\n";
 
-    // The framebuffer is not the window on a HiDPI display, and it is the
-    // framebuffer that the viewport and the shaders care about.
-    int framebufferWidth, framebufferHeight;
-    glfwGetFramebufferSize(glfwWindow, &framebufferWidth, &framebufferHeight);
-    resizeHandler(glfwWindow, framebufferWidth, framebufferHeight);
+    // Trigger the DPI check
+    resizeHandler(glfwWindow, 0, 0);
 
     platform::beforeMainLoop(glfwWindow, monitorX, monitorY, (int) eglState.width, (int) eglState.height);
 
