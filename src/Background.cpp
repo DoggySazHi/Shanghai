@@ -24,15 +24,10 @@ void Background::draw(EGLState* state) {
             1, -1,
     };
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), vertices);
-    glEnableVertexAttribArray(0);
-
     shader->setUniform("time", (float) getTime() / 1000.0f);
     shader->setUniform("resolution", (float) displayWidth, (float) displayHeight);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 5);
-
-    glDisableVertexAttribArray(0);
+    quad.draw(vertices);
 }
 
 void Background::setScreenGeometry(uint32_t width, uint32_t height) {

@@ -3,7 +3,8 @@
 
 #include <string>
 #include "../Shader.h"
-#include "glad/glad.h"
+#include "../gl.h"
+#include "../gl/Quad.h"
 #include "../state.h"
 
 class NinePatch {
@@ -17,6 +18,7 @@ public:
     void render(const EGLState *state, int x, int y, int width, int height) const;
 private:
     static Shader* shader; // Shader to use for rendering
+    Quad quad{Quad::Layout::POSITION_AND_UV}; // Geometry the patch is drawn onto
     GLuint texture = 0; // Texture for the 9patch image
     int x, y, dx, dy; // Coordinates and dimensions of the 9patch
     int textureWidth = 0, textureHeight = 0;

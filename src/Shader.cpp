@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <string_view>
 #include "Shader.h"
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath) {
@@ -25,7 +26,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath) {
     glGetProgramiv(id, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(id, 512, nullptr, infoLog);
-        std::cout << "Failed to link GLES shader program\n" << infoLog << '\n';
+        std::cout << "Failed to link shader program\n" << infoLog << '\n';
     }
 
     std::cout << "Cleaning up shader...\n";
@@ -57,8 +58,15 @@ GLuint Shader::compileShader(const char *shaderSource, GLenum shaderType) {
     // Read shader code
     std::string shaderCode((std::istreambuf_iterator<char>(vertexShaderFile)), std::istreambuf_iterator<char>());
     vertexShaderFile.close();
-#ifdef __APPLE__
-    shaderCode.replace(shaderCode.find("#version 320 es"), sizeof("#version 320 es"), "#version 330 core");
+#ifdef SHANGHAI_GL_CORE
+    constexpr std::string_view esVersion = "#version 320 es";
+    constexpr std::string_view coreVersion = "#version 330 core";
+
+    if (const auto versionPos = shaderCode.find(esVersion); versionPos != std::string::npos) {
+        shaderCode.replace(versionPos, esVersion.length(), coreVersion);
+    } else {
+        std::cerr << "Shader " << shaderSource << " has no '" << esVersion << "' directive to translate\n";
+    }
 #endif
     const char* shaderSourceIndirection = shaderCode.c_str();
 
@@ -74,7 +82,7 @@ GLuint Shader::compileShader(const char *shaderSource, GLenum shaderType) {
     if (!success)
     {
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Failed to compile GLES shader " << shaderSource << '\n' << infoLog << '\n';
+        std::cerr << "Failed to compile shader " << shaderSource << '\n' << infoLog << '\n';
         return 0;
     }
 

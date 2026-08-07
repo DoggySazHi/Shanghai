@@ -5,13 +5,14 @@
 #include <chrono>
 #include <vector>
 #include "Shader.h"
+#include "gl/Quad.h"
 #include "state.h"
 #include "ShanghaiStateMachine.h"
 
-#ifdef __WAYLAND__
+#ifdef SHANGHAI_PLATFORM_WAYLAND
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
-#elif __X11__
+#elif defined(SHANGHAI_PLATFORM_X11)
 #include <X11/extensions/shape.h>
 #include <X11/extensions/Xfixes.h>
 #endif
@@ -38,18 +39,22 @@ public:
     [[nodiscard]] bool inShanghai(EGLState* state) const;
 
     static void updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* state);
+
+    /**
+     * Release the textures, shader and geometry shared by every Shanghai. Call
+     * once, while the GL context is still current, after the last one is gone.
+     */
+    static void releaseSharedResources();
 private:
-#ifdef __WAYLAND__
+#ifdef SHANGHAI_PLATFORM_WAYLAND
     static wl_region *inputRegion;
-#elif __X11__
+#elif defined(SHANGHAI_PLATFORM_X11)
     static _XDisplay* xDisplay;
     static unsigned long xWindow;
-#elif __APPLE__
-    static GLuint shanghaiVAO;
-    static GLuint shanghaiVBO;
 #endif
 
     static Shader* shader;
+    static Quad* quad;
     static GLuint textures[SHANGHAI_TEXTURE_COUNT];
     int textureIndex = 0;
     uint32_t displayWidth = 0, displayHeight = 0;

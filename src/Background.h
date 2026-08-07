@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include "Shader.h"
+#include "gl/Quad.h"
 #include "state.h"
 
 class Background {
@@ -15,6 +16,7 @@ public:
     static uint64_t getTime();
 private:
     Shader* shader;
+    Quad quad{Quad::Layout::POSITION};
     uint32_t displayWidth = 0, displayHeight = 0;
 };
 

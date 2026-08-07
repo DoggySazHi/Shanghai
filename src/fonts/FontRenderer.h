@@ -3,7 +3,8 @@
 
 #include "BDF.h"
 #include "../Shader.h"
-#include "glad/glad.h"
+#include "../gl.h"
+#include "../gl/Quad.h"
 #include "../state.h"
 
 struct FontTexture {
@@ -22,6 +23,7 @@ public:
     void renderString(const EGLState *state, const std::string &str, int x, int y, int r, int g, int b, int a) const;
 private:
     static Shader* shader; // Shader to use for rendering
+    Quad quad{Quad::Layout::POSITION_AND_UV}; // Geometry each glyph is drawn onto
     BDF* font; // Font to render
     std::unordered_map<char, FontTexture> positionMap; // Map of character to atlas position
     GLuint atlasTexture = 0; // Texture atlas for the font

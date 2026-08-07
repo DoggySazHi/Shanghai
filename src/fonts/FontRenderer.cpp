@@ -121,12 +121,6 @@ void FontRenderer::testRenderAtlas(const EGLState* state) const {
         ATLAS_SIZE, ATLAS_SIZE, ATLAS_SIZE, ATLAS_SIZE,
     };
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
-    glEnableVertexAttribArray(1);
-
     glActiveTexture(GL_TEXTURE0);
     shader->setUniform("fontTexture", 0);
     shader->setUniform("screenGeometry", (float) state->width, (float) state->height);
@@ -135,11 +129,7 @@ void FontRenderer::testRenderAtlas(const EGLState* state) const {
     shader->setUniform("color", 255.0f, 255.0f, 255.0f, 255.0f);
     glBindTexture(GL_TEXTURE_2D, atlasTexture);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    quad.draw(vertices);
 }
 
 void FontRenderer::renderCharacter(const EGLState* state, char character, int x, int y, int r = 255, int g = 255, int b = 255, int a = 255) const {
@@ -168,16 +158,7 @@ void FontRenderer::renderCharacter(const EGLState* state, char character, int x,
         (float) texture.width, (float) texture.height, (float) texture.offsetX, (float) (texture.offsetY + texture.height),
     };
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
-    glEnableVertexAttribArray(1);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    quad.draw(vertices);
 }
 
 void FontRenderer::renderString(const EGLState* state, const std::string& str, int x, int y, int r = 255, int g = 255, int b = 255, int a = 255) const {

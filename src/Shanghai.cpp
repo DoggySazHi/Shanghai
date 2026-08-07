@@ -7,21 +7,19 @@
 #include "stb_image.h"
 
 GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
-#ifdef __WAYLAND__
+#ifdef SHANGHAI_PLATFORM_WAYLAND
 extern struct wl_compositor *compositor;
 extern struct wl_surface *wl_surface, *cursor_surface;
 extern struct wl_cursor* left_ptr_cursor;
 extern struct wl_cursor* pointer_cursor;
 wl_region* Shanghai::inputRegion = nullptr;
-#elif __X11__
+#elif defined(SHANGHAI_PLATFORM_X11)
 extern struct GLFWwindow* glfwWindow;
 _XDisplay* Shanghai::xDisplay = nullptr;
 unsigned long Shanghai::xWindow = 0;
-#elif __APPLE__
-GLuint Shanghai::shanghaiVAO = 0;
-GLuint Shanghai::shanghaiVBO = 0;
 #endif
 Shader* Shanghai::shader = nullptr;
+Quad* Shanghai::quad = nullptr;
 
 Shanghai::Shanghai() {
     if (shader == nullptr) {
@@ -32,23 +30,20 @@ Shanghai::Shanghai() {
         }
     }
 
-#ifdef __WAYLAND__
+    // Every Shanghai draws the same unit quad, so one is shared by all of them.
+    if (quad == nullptr) {
+        quad = new Quad(Quad::Layout::POSITION_AND_UV);
+    }
+
+#ifdef SHANGHAI_PLATFORM_WAYLAND
     if (inputRegion == nullptr) {
         inputRegion = wl_compositor_create_region(compositor);
     }
-#elif __X11__
+#elif defined(SHANGHAI_PLATFORM_X11)
     if (xDisplay == nullptr) {
         xDisplay = glfwGetX11Display();
         xWindow = glfwGetX11Window(glfwWindow);
     }
-#elif __APPLE__
-    glGenVertexArrays(1, &shanghaiVAO);
-    glGenBuffers(1, &shanghaiVBO);
-
-    glBindVertexArray(shanghaiVAO);
-
-    
-
 #endif
 
     // Generate textures
@@ -82,8 +77,22 @@ Shanghai::Shanghai() {
 }
 
 Shanghai::~Shanghai() {
-    glDeleteTextures(SHANGHAI_TEXTURE_COUNT, textures);
     delete stateMachine;
+}
+
+void Shanghai::releaseSharedResources() {
+    if (textures[0] != 0) {
+        glDeleteTextures(SHANGHAI_TEXTURE_COUNT, textures);
+        for (auto& texture : textures) {
+            texture = 0;
+        }
+    }
+
+    delete quad;
+    quad = nullptr;
+
+    delete shader;
+    shader = nullptr;
 }
 
 /**
@@ -91,7 +100,7 @@ Shanghai::~Shanghai() {
  * @param state The current EGL state (mouse position)
  */
 void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* state) {
-#ifdef __WAYLAND__
+#ifdef SHANGHAI_PLATFORM_WAYLAND
     struct wl_cursor_image *image;
 
     auto time = getTime();
@@ -130,7 +139,7 @@ void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* s
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
-#elif __X11__
+#elif defined(SHANGHAI_PLATFORM_X11)
     // Hard-coded 20 frame delay in terms of recalculating the X11 clickable region
     // Running every frame causes XShapeCombineRegion to lag
     static uint8_t frameCounter = 0;
@@ -195,15 +204,6 @@ void Shanghai::draw(EGLState* state) {
             128, 128, 1.0, 1.0,
     };
 
-    glBindVertexArray(shanghaiVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, shanghaiVBO);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
-    glEnableVertexAttribArray(1);
-
     glActiveTexture(GL_TEXTURE0);
     shader->setUniform("shanghaiTexture", 0);
     shader->setUniform("screenGeometry", (float) displayWidth, (float) displayHeight);
@@ -211,10 +211,7 @@ void Shanghai::draw(EGLState* state) {
     shader->setUniform("shanghaiHFlip", flip);
     glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
 
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    quad->draw(vertices);
 }
 
 void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {

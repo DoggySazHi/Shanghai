@@ -55,16 +55,7 @@ void NinePatch::render(const EGLState* state, int x, int y, int width, int heigh
         (float) width, (float) height, 1.0f, 1.0f,
     };
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), vertices + 2);
-    glEnableVertexAttribArray(1);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    quad.draw(vertices);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 }

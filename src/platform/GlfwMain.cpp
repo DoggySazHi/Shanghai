@@ -1,14 +1,16 @@
 #define GLFW_INCLUDE_NONE
-#define STB_IMAGE_IMPLEMENTATION
 
 #include <iostream>
-#include "stb_image.h"
 
+#include "Platform.h"
 #include "../gl.h"
 #include "../state.h"
 #include "../config/ShanghaiConfiguration.h"
 #include "../Background.h"
 #include "../Shanghai.h"
+#include "../fonts/FontRenderer.h"
+#include "../Random.h"
+#include "../9patch/NinePatch.h"
 
 // Windows stuff
 GLFWwindow* glfwWindow;
@@ -17,7 +19,9 @@ GLFWwindow* glfwWindow;
 EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
-Shanghai* shanghai;
+FontRenderer* fontRenderer;
+NinePatch* ninePatch;
+std::vector<Shanghai*> shanghais;
 
 // Callback handlers
 
@@ -25,9 +29,7 @@ void resizeHandler([[maybe_unused]] GLFWwindow* window, const int width, const i
     eglState.width = width;
     eglState.height = height;
 
-    std::cout << "Resizing to " << width << "x" << height << '\n';
-
-    if (shanghai != nullptr) {
+    for (auto& shanghai : shanghais) {
         shanghai->setScreenGeometry(eglState.width, eglState.height);
     }
 
@@ -73,15 +75,23 @@ void draw() {
         background->draw(&eglState);
     }
 
-    shanghai->draw(&eglState);
+    for (const auto& shanghai : shanghais) {
+        shanghai->draw(&eglState);
+    }
 
-    // check for errors
+    // ninePatch->render(&eglState, 200, 100, 100, 100);
+
+    Shanghai::updateCursor(shanghais, &eglState);
+
+#ifdef DEBUG
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error: " << err << '\n';
     }
+#endif
 
     glfwSwapBuffers(glfwWindow);
+    platform::afterSwap(glfwWindow);
 }
 
 int main() {
@@ -104,7 +114,7 @@ int main() {
         return -1;
     }
 
-    if (config->getOutput() >= monitorCount && config->getOutput() != UINT32_MAX) {
+    if (config->getOutput() >= static_cast<uint32_t>(monitorCount) && config->getOutput() != UINT32_MAX) {
         std::cerr << "Invalid output index\n";
         return -1;
     }
@@ -114,16 +124,14 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, 1);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-//    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    platform::applyWindowHints();
 
     auto* videoMode = glfwGetVideoMode(monitor);
     eglState.width = videoMode->width;
-    eglState.height = videoMode->height - 40; // Remove 40 pixels to account for menu bar
+    eglState.height = videoMode->height;
 
     glfwWindow = glfwCreateWindow((int) eglState.width, (int) eglState.height, "Shanghai", monitor, nullptr);
 
@@ -134,8 +142,9 @@ int main() {
         return -1;
     }
 
+    platform::afterWindowCreated(glfwWindow, (int) eglState.width, (int) eglState.height);
+
     glfwMakeContextCurrent(glfwWindow);
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
     glfwSwapInterval(1);
 
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
@@ -145,9 +154,9 @@ int main() {
     }
 
     glfwSetFramebufferSizeCallback(glfwWindow, resizeHandler);
-    glfwSetWindowSizeCallback(glfwWindow, resizeHandler);
     glfwSetCursorPosCallback(glfwWindow, mouseHandler);
     glfwSetMouseButtonCallback(glfwWindow, mouseButtonHandler);
+    platform::installCallbacks(glfwWindow);
 
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << '\n';
     std::cout << "OpenGL renderer: " << glGetString(GL_RENDERER) << '\n';
@@ -162,22 +171,51 @@ int main() {
         background = new Background();
     }
 
-    shanghai = new Shanghai();
+    auto shanghai = new Shanghai();
+    fontRenderer = new FontRenderer("TamzenForPowerline10x20r.bdf");
+    ninePatch = new NinePatch("img/message.png", 12, 12, 12, 12);
+    // shanghai->positionX = -40;
+    // shanghai->positionY = 1300;
+    // shanghai->flip = false;
+    // shanghai->getStateMachine()->setState(ShanghaiState::WALL_CLIMB);
+    shanghai->getStateMachine()->setState(ShanghaiState::THROWING);
+    shanghais.push_back(shanghai);
+    // ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING, ShanghaiState::JUMP};
+    // // ShanghaiState states[] = {ShanghaiState::WALL_HOLD, ShanghaiState::WALL_CLIMB};
+    // for (int i = 0; i < 40; ++i) {
+    //     auto* shanghai = new Shanghai();
+    //     shanghai->positionX = i * 128;
+    //     shanghais.push_back(shanghai);
+    //
+    //     shanghai->getStateMachine()->setState(states[(int) (Random::rand() * std::size(states))]);
+    //     shanghai->flip = Random::rand() < 0.5;
+    // }
 
     std::cout << "Starting output...\n";
 
-    // Set viewport size on retina displays
-    int width, height;
-    glfwGetFramebufferSize(glfwWindow, &width, &height);
-    // Remove about 40 pixels from height to account for menu bar
-    height -= 40;
-    resizeHandler(glfwWindow, width, height);
+    // The framebuffer is not the window on a HiDPI display, and it is the
+    // framebuffer that the viewport and the shaders care about.
+    int framebufferWidth, framebufferHeight;
+    glfwGetFramebufferSize(glfwWindow, &framebufferWidth, &framebufferHeight);
+    resizeHandler(glfwWindow, framebufferWidth, framebufferHeight);
+
+    platform::beforeMainLoop(glfwWindow, (int) eglState.width, (int) eglState.height);
 
     while (!glfwWindowShouldClose(glfwWindow))
     {
         glfwPollEvents();
         draw();
     }
+
+    for (const auto& deadShanghai : shanghais) {
+        delete deadShanghai;
+    }
+    shanghais.clear();
+
+    delete ninePatch;
+    delete fontRenderer;
+    delete background;
+    Shanghai::releaseSharedResources();
 
     glfwTerminate();
 

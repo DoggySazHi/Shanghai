@@ -3,12 +3,23 @@ project(Shanghai)
 
 set(CMAKE_CXX_STANDARD 23)
 
+set(SHANGHAI_BACKEND "" CACHE STRING "Linux display backend to build: x11 or wayland")
+
 # Check if Linux
 if (UNIX AND NOT APPLE)
     message(STATUS "Configuring for Linux")
 
-    if (DEFINED ENV{WAYLAND_DISPLAY})
-        message(STATUS "Wayland display detected; configuring for Wayland")
+    if (SHANGHAI_BACKEND STREQUAL "")
+        if (DEFINED ENV{WAYLAND_DISPLAY})
+            set(SHANGHAI_BACKEND "wayland")
+        else ()
+            set(SHANGHAI_BACKEND "x11")
+        endif ()
+        message(STATUS "SHANGHAI_BACKEND not set; guessed '${SHANGHAI_BACKEND}' from the environment")
+    endif ()
+
+    if (SHANGHAI_BACKEND STREQUAL "wayland")
+        message(STATUS "Configuring for Wayland")
 
         add_custom_target(
                 WeTrickCMakeIntoGeneratingOurStuff ALL
@@ -60,28 +71,36 @@ if (UNIX AND NOT APPLE)
                 src/wayland/surface.h
         )
 
-    else ()
-        message(STATUS "Wayland display not detected; configuring for X11")
+    elseif (SHANGHAI_BACKEND STREQUAL "x11")
+        message(STATUS "Configuring for X11")
 
         SET(SYSTEM_SPECIFIC_SOURCE
                 libs/glad/glad.c
-                src/x11/main.cpp
+                src/platform/GlfwMain.cpp
+                src/platform/stb_image_impl.cpp
+                src/x11/Platform.cpp
                 src/x11/wrapper.c
         )
+    else ()
+        message(FATAL_ERROR "Unknown SHANGHAI_BACKEND '${SHANGHAI_BACKEND}'; expected 'x11' or 'wayland'")
     endif ()
 elseif (WIN32)
     message(STATUS "Configuring for Windows")
 
     SET(SYSTEM_SPECIFIC_SOURCE
             libs/glad/glad.c
-            src/windows/main.cpp
+            src/platform/GlfwMain.cpp
+            src/platform/stb_image_impl.cpp
+            src/windows/Platform.cpp
     )
 elseif (APPLE)
     message(STATUS "Configuring for macOS")
 
     SET(SYSTEM_SPECIFIC_SOURCE
-            libs/glad/glad.macos.c
-            src/macos/main.cpp
+            libs/glad/glad.c
+            src/platform/GlfwMain.cpp
+            src/platform/stb_image_impl.cpp
+            src/macos/Platform.cpp
     )
 else ()
     message(FATAL_ERROR "Unsupported platform")
@@ -148,6 +167,9 @@ SET(SHANGHAI_SOURCE
         src/fonts/FontRenderer.h
         src/9patch/NinePatch.cpp
         src/9patch/NinePatch.h
+        src/gl/Quad.cpp
+        src/gl/Quad.h
+        src/platform/Platform.h
 )
 
 add_executable(Shanghai
@@ -156,10 +178,11 @@ add_executable(Shanghai
 )
 
 if (UNIX AND NOT APPLE)
-    if (DEFINED ENV{WAYLAND_DISPLAY})
+    if (SHANGHAI_BACKEND STREQUAL "wayland")
         target_compile_definitions(Shanghai
                 PRIVATE
-                __WAYLAND__
+                SHANGHAI_PLATFORM_WAYLAND
+                SHANGHAI_GL_ES
         )
 
         target_link_libraries(Shanghai
@@ -179,7 +202,8 @@ if (UNIX AND NOT APPLE)
 
         target_compile_definitions(Shanghai
                 PRIVATE
-                __X11__
+                SHANGHAI_PLATFORM_X11
+                SHANGHAI_GL_CORE
         )
 
         target_link_libraries(Shanghai
@@ -197,7 +221,8 @@ elseif (WIN32)
 
     target_compile_definitions(Shanghai
             PRIVATE
-            __WIN32__
+            SHANGHAI_PLATFORM_WINDOWS
+            SHANGHAI_GL_CORE
     )
 
     target_link_libraries(Shanghai
@@ -215,7 +240,8 @@ elseif (APPLE)
 
     target_compile_definitions(Shanghai
             PRIVATE
-            __APPLE__
+            SHANGHAI_PLATFORM_MACOS
+            SHANGHAI_GL_CORE
     )
 
     target_link_libraries(Shanghai
@@ -232,3 +258,4 @@ target_compile_definitions(Shanghai
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/img DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shader DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/TamzenForPowerline10x20r.bdf DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
