@@ -79,7 +79,6 @@ if (UNIX AND NOT APPLE)
                 src/platform/GlfwMain.cpp
                 src/platform/stb_image_impl.cpp
                 src/x11/Platform.cpp
-                src/x11/wrapper.c
         )
     else ()
         message(FATAL_ERROR "Unknown SHANGHAI_BACKEND '${SHANGHAI_BACKEND}'; expected 'x11' or 'wayland'")
@@ -96,11 +95,15 @@ elseif (WIN32)
 elseif (APPLE)
     message(STATUS "Configuring for macOS")
 
+    # Platform.mm pokes at NSWindow/NSEvent for the things GLFW does not expose
+    enable_language(OBJCXX)
+    set(CMAKE_OBJCXX_STANDARD 23)
+
     SET(SYSTEM_SPECIFIC_SOURCE
             libs/glad/glad.c
             src/platform/GlfwMain.cpp
             src/platform/stb_image_impl.cpp
-            src/macos/Platform.cpp
+            src/macos/Platform.mm
     )
 else ()
     message(FATAL_ERROR "Unsupported platform")
@@ -244,10 +247,15 @@ elseif (APPLE)
             SHANGHAI_GL_CORE
     )
 
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(CORE_GRAPHICS_LIBRARY CoreGraphics REQUIRED)
+
     target_link_libraries(Shanghai
             glfw
             JsonCpp::JsonCpp
-            OpenGL::GL)
+            OpenGL::GL
+            ${COCOA_LIBRARY}
+            ${CORE_GRAPHICS_LIBRARY})
 endif ()
 
 target_compile_definitions(Shanghai

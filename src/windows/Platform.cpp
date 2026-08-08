@@ -46,4 +46,16 @@ namespace platform {
     void afterSwap([[maybe_unused]] GLFWwindow* window) {
         sinkToBottom();
     }
+
+    void updatePointer([[maybe_unused]] GLFWwindow* window,
+                       [[maybe_unused]] EGLState* state,
+                       [[maybe_unused]] const std::vector<InputRect>& interactive) {
+        // TODO implement for Windows
+    }
+
+    void warpCursor([[maybe_unused]] GLFWwindow* window,
+                    [[maybe_unused]] int x,
+                    [[maybe_unused]] int y) {
+        // TODO implement for Windows
+    }
 }

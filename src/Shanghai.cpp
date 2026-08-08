@@ -6,6 +6,10 @@
 
 #include "stb_image.h"
 
+#ifndef SHANGHAI_PLATFORM_WAYLAND
+#include "platform/Platform.h"
+#endif
+
 GLuint Shanghai::textures[SHANGHAI_TEXTURE_COUNT] = {0};
 #ifdef SHANGHAI_PLATFORM_WAYLAND
 extern struct wl_compositor *compositor;
@@ -13,10 +17,8 @@ extern struct wl_surface *wl_surface, *cursor_surface;
 extern struct wl_cursor* left_ptr_cursor;
 extern struct wl_cursor* pointer_cursor;
 wl_region* Shanghai::inputRegion = nullptr;
-#elif defined(SHANGHAI_PLATFORM_X11)
+#else
 extern struct GLFWwindow* glfwWindow;
-_XDisplay* Shanghai::xDisplay = nullptr;
-unsigned long Shanghai::xWindow = 0;
 #endif
 Shader* Shanghai::shader = nullptr;
 Quad* Shanghai::quad = nullptr;
@@ -38,11 +40,6 @@ Shanghai::Shanghai() {
 #ifdef SHANGHAI_PLATFORM_WAYLAND
     if (inputRegion == nullptr) {
         inputRegion = wl_compositor_create_region(compositor);
-    }
-#elif defined(SHANGHAI_PLATFORM_X11)
-    if (xDisplay == nullptr) {
-        xDisplay = glfwGetX11Display();
-        xWindow = glfwGetX11Window(glfwWindow);
     }
 #endif
 
@@ -139,53 +136,28 @@ void Shanghai::updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* s
     wl_surface_attach(cursor_surface, wl_cursor_image_get_buffer(image), 0, 0);
     wl_surface_damage(cursor_surface, 1, 0, (int) image->width, (int) image->height);
     wl_surface_commit(cursor_surface);
-#elif defined(SHANGHAI_PLATFORM_X11)
-    // Hard-coded 20 frame delay in terms of recalculating the X11 clickable region
-    // Running every frame causes XShapeCombineRegion to lag
-    static uint8_t frameCounter = 0;
-    if (frameCounter > 20) {
-        frameCounter = 0;
-    } else {
-        frameCounter++;
-        return;
-    }
-
-    // Update X11 cursor position
-    Window rootReturn, childReturn;
-    int rootXReturn, rootYReturn, winXReturn, winYReturn;
-    unsigned int maskReturn;
-
-    bool isInWindow = XQueryPointer(xDisplay, xWindow, &rootReturn, &childReturn, &rootXReturn, &rootYReturn, &winXReturn, &winYReturn, &maskReturn);
-
-    if (!isInWindow) {
-        state->curX = rootXReturn;
-        state->curY = rootYReturn;
-    } else {
-        state->curX = winXReturn;
-        state->curY = winYReturn;
-    }
-
-    // Handle clickable regions
-    auto region = XCreateRegion();
-
-    XRectangle rect;
-    rect.width = SHANGHAI_TEXTURE_WIDTH;
-    rect.height = SHANGHAI_TEXTURE_WIDTH;
+#else
+    // Allow the cursor to be over any Shanghais (allows them to be yeeted)
+    std::vector<platform::InputRect> interactive;
+    interactive.reserve(shanghais.size());
 
     for (auto shanghai : shanghais) {
-        // Allow the cursor to be over any Shanghais (allows them to be yeeted)
-        rect.x = (short) shanghai->positionX;
-        rect.y = (short) (state->height - (short) shanghai->positionY - SHANGHAI_TEXTURE_WIDTH);
-        XUnionRectWithRegion(&rect, region, region);
+        interactive.push_back({
+            (int) shanghai->positionX,
+            (int) state->height - (int) shanghai->positionY - SHANGHAI_TEXTURE_WIDTH,
+            SHANGHAI_TEXTURE_WIDTH,
+            SHANGHAI_TEXTURE_WIDTH
+        });
     }
 
-    XShapeCombineRegion(xDisplay, xWindow, ShapeInput, 0, 0, region, ShapeSet);
-    XDestroyRegion(region);
+    platform::updatePointer(glfwWindow, state, interactive);
 
     // Steal the cursor if applicable
     auto* robber = ShanghaiStateMachine::getShanghaiStealingCursor();
     if (robber != nullptr) {
-        XWarpPointer(xDisplay, None, xWindow, 0, 0, 0, 0, (int) robber->positionX + SHANGHAI_TEXTURE_WIDTH / 2, (int) (state->height - (int) robber->positionY - SHANGHAI_TEXTURE_WIDTH / 2));
+        platform::warpCursor(glfwWindow,
+                             (int) robber->positionX + SHANGHAI_TEXTURE_WIDTH / 2,
+                             (int) state->height - (int) robber->positionY - SHANGHAI_TEXTURE_WIDTH / 2);
     }
 #endif
 }

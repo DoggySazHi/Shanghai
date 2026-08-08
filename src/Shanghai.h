@@ -12,9 +12,6 @@
 #ifdef SHANGHAI_PLATFORM_WAYLAND
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
-#elif defined(SHANGHAI_PLATFORM_X11)
-#include <X11/extensions/shape.h>
-#include <X11/extensions/Xfixes.h>
 #endif
 
 #define SHANGHAI_TEXTURE_COUNT 46
@@ -39,18 +36,10 @@ public:
     [[nodiscard]] bool inShanghai(EGLState* state) const;
 
     static void updateCursor(const std::vector<Shanghai*>& shanghais, EGLState* state);
-
-    /**
-     * Release the textures, shader and geometry shared by every Shanghai. Call
-     * once, while the GL context is still current, after the last one is gone.
-     */
     static void releaseSharedResources();
 private:
 #ifdef SHANGHAI_PLATFORM_WAYLAND
     static wl_region *inputRegion;
-#elif defined(SHANGHAI_PLATFORM_X11)
-    static _XDisplay* xDisplay;
-    static unsigned long xWindow;
 #endif
 
     static Shader* shader;
