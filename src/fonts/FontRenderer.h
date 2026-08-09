@@ -14,13 +14,19 @@ struct FontTexture {
     int height;
 };
 
+struct TextSize {
+    int width;
+    int height;
+};
+
 class FontRenderer {
 public:
     FontRenderer(const std::string& fontFile);
     ~FontRenderer();
     void testRenderAtlas(const EGLState* state) const;
     void renderCharacter(const EGLState *state, char character, int x, int y, int r, int g, int b, int a) const;
-    void renderString(const EGLState *state, const std::string &str, int x, int y, int r, int g, int b, int a) const;
+    void renderString(const EGLState *state, std::string_view str, int x, int y, int r, int g, int b, int a) const;
+    [[nodiscard]] TextSize measureString(std::string_view str) const;
 private:
     static Shader* shader; // Shader to use for rendering
     Quad quad{Quad::Layout::POSITION_AND_UV}; // Geometry each glyph is drawn onto

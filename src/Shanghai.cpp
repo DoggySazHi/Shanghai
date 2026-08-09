@@ -71,10 +71,13 @@ Shanghai::Shanghai() {
     }
 
     stateMachine = new ShanghaiStateMachine();
+    speechBubble = new SpeechBubble();
+    speechBubble->setText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 }
 
 Shanghai::~Shanghai() {
     delete stateMachine;
+    delete speechBubble;
 }
 
 void Shanghai::releaseSharedResources() {
@@ -184,6 +187,9 @@ void Shanghai::draw(EGLState* state) {
     glBindTexture(GL_TEXTURE_2D, textures[textureIndex]);
 
     quad->draw(vertices);
+
+    speechBubble->setPosition((int) positionX + SHANGHAI_TEXTURE_WIDTH / 2, (int) positionY + SHANGHAI_TEXTURE_WIDTH + 20);
+    speechBubble->render(state);
 }
 
 void Shanghai::setScreenGeometry(uint32_t width, uint32_t height) {

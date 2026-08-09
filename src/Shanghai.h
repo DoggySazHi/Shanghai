@@ -8,6 +8,7 @@
 #include "gl/Quad.h"
 #include "state.h"
 #include "ShanghaiStateMachine.h"
+#include "speechbubble/SpeechBubble.h"
 
 #ifdef SHANGHAI_PLATFORM_WAYLAND
 #include <wayland-client-protocol.h>
@@ -49,6 +50,7 @@ private:
     uint32_t displayWidth = 0, displayHeight = 0;
 
     ShanghaiStateMachine* stateMachine;
+    SpeechBubble* speechBubble;
 };
 
 

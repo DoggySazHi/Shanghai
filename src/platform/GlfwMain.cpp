@@ -22,8 +22,6 @@ GLFWwindow* glfwWindow;
 EGLState eglState;
 ShanghaiConfiguration* config;
 Background* background;
-FontRenderer* fontRenderer;
-NinePatch* ninePatch;
 std::vector<Shanghai*> shanghais;
 
 // Callback handlers
@@ -193,8 +191,6 @@ int main() {
     }
 
     auto shanghai = new Shanghai();
-    fontRenderer = new FontRenderer("TamzenForPowerline10x20r.bdf");
-    ninePatch = new NinePatch("img/message.png", 12, 12, 12, 12);
     // shanghai->positionX = -40;
     // shanghai->positionY = 1300;
     // shanghai->flip = false;
@@ -230,8 +226,6 @@ int main() {
     }
     shanghais.clear();
 
-    delete ninePatch;
-    delete fontRenderer;
     delete background;
     Shanghai::releaseSharedResources();
 

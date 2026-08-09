@@ -161,7 +161,7 @@ void FontRenderer::renderCharacter(const EGLState* state, char character, int x,
     quad.draw(vertices);
 }
 
-void FontRenderer::renderString(const EGLState* state, const std::string& str, int x, int y, int r = 255, int g = 255, int b = 255, int a = 255) const {
+void FontRenderer::renderString(const EGLState* state, const std::string_view str, int x, int y, int r = 255, int g = 255, int b = 255, int a = 255) const {
     int curX = x;
     int curY = y;
 
@@ -182,4 +182,33 @@ void FontRenderer::renderString(const EGLState* state, const std::string& str, i
         renderCharacter(state, character, curX, curY, r, g, b, a);
         curX += it->second.width; // Move to the next character position
     }
+}
+
+TextSize FontRenderer::measureString(const std::string_view str) const {
+    int maxWidth = 0;
+    int totalHeight = 0;
+    int currentWidth = 0;
+
+    for (char character : str) {
+        auto it = positionMap.find(character);
+
+        if (it == positionMap.end()) {
+            // If the character is not found, skip it
+            continue;
+        }
+
+        if (character == '\n') {
+            maxWidth = std::max(maxWidth, currentWidth);
+            currentWidth = 0;
+            totalHeight += it->second.height;
+            continue;
+        }
+
+        currentWidth += it->second.width;
+    }
+
+    maxWidth = std::max(maxWidth, currentWidth);
+    totalHeight += positionMap.at(' ').height; // Add height for the last line
+
+    return {.width = maxWidth, .height = totalHeight};
 }

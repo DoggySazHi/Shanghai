@@ -173,6 +173,8 @@ SET(SHANGHAI_SOURCE
         src/gl/Quad.cpp
         src/gl/Quad.h
         src/platform/Platform.h
+        src/speechbubble/SpeechBubble.cpp
+        src/speechbubble/SpeechBubble.h
 )
 
 add_executable(Shanghai
