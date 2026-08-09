@@ -64,6 +64,13 @@ FontRenderer::FontRenderer(const std::string& fontFile) {
                      atlasData, ATLAS_SIZE, ATLAS_SIZE,
                      currentX, currentY);
 
+        positionMap[character->character] = {
+            .offsetX = currentX,
+            .offsetY = currentY,
+            .width = character->width,
+            .height = character->height
+        };
+
         currentX += maxWidth;
         if (currentX + maxWidth > ATLAS_SIZE) {
             currentX = 0;
@@ -73,13 +80,6 @@ FontRenderer::FontRenderer(const std::string& fontFile) {
         if (currentY + maxHeight > ATLAS_SIZE) {
             throw std::runtime_error("Font atlas size exceeded. Increase ATLAS_SIZE or reduce character sizes.");
         }
-
-        positionMap[character->character] = {
-            currentX,
-            currentY,
-            character->width,
-            character->height
-        };
     }
 
     // Vertically flip the atlas data
@@ -152,10 +152,10 @@ void FontRenderer::renderCharacter(const EGLState* state, char character, int x,
 
     // Render the character as a quad
     GLfloat vertices[] = {
-        0.0f, 0.0f, (float) (texture.offsetX - texture.width), (float) texture.offsetY,
-        0.0f, (float) texture.height, (float) (texture.offsetX - texture.width), (float) (texture.offsetY + texture.height),
-        (float) texture.width, 0.0f, (float) texture.offsetX, (float) texture.offsetY,
-        (float) texture.width, (float) texture.height, (float) texture.offsetX, (float) (texture.offsetY + texture.height),
+        0.0f, 0.0f, (float) texture.offsetX, (float) texture.offsetY,
+        0.0f, (float) texture.height, (float) texture.offsetX, (float) (texture.offsetY + texture.height),
+        (float) texture.width, 0.0f, (float) (texture.offsetX + texture.width), (float) texture.offsetY,
+        (float) texture.width, (float) texture.height, (float) (texture.offsetX + texture.width), (float) (texture.offsetY + texture.height),
     };
 
     quad.draw(vertices);
