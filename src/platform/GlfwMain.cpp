@@ -97,8 +97,6 @@ void draw() {
         shanghai->draw(&eglState);
     }
 
-    // ninePatch->render(&eglState, 200, 100, 100, 100);
-
     Shanghai::updateCursor(shanghais, &eglState);
 
 #ifdef DEBUG

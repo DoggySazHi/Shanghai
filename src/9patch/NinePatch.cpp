@@ -14,8 +14,9 @@ NinePatch::NinePatch(const std::string& filePath, const int x, const int y, cons
     glBindTexture(GL_TEXTURE_2D, texture);
 
     int channels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(filePath.c_str(), &this->textureWidth, &this->textureHeight, &channels, 0);
+    // Use top-left corner to make the frag math easier
+    stbi_set_flip_vertically_on_load(false);
+    unsigned char* data = stbi_load(filePath.c_str(), &this->textureWidth, &this->textureHeight, &channels, 4);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->textureWidth, this->textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     } else {
@@ -28,8 +29,7 @@ NinePatch::NinePatch(const std::string& filePath, const int x, const int y, cons
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    shader->use();
-    shader->setUniform("ninePatchGeometry", (float) x, (float) y, (float) dx, (float) dy);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 NinePatch::~NinePatch() {
@@ -43,9 +43,10 @@ void NinePatch::render(const EGLState* state, int x, int y, int width, int heigh
 
     shader->setUniform("patchTexture", 0);
     shader->setUniform("screenGeometry", (float) state->width, (float) state->height);
-    shader->setUniform("position", (float) x, (float) y, (float) width, (float) height);
-    shader->setUniform("patchShape", (float) this->textureWidth, (float) this->textureHeight);
-    shader->setUniform("patchGeometry", (float) this->x, (float) this->y, (float) this->dx, (float) this->dy);
+    shader->setUniform("position", (float) x, (float) y);
+    shader->setUniform("patchSize", (float) width, (float) height);
+    shader->setUniform("textureSize", (float) this->textureWidth, (float) this->textureHeight);
+    shader->setUniform("centerRect", (float) this->x, (float) this->y, (float) this->dx, (float) this->dy);
 
     // Render the 9-patch as a quad
     GLfloat vertices[] = {
