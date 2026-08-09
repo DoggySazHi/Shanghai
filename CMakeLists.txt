@@ -197,7 +197,6 @@ if (UNIX AND NOT APPLE)
                 wayland-egl
                 EGL
                 GLESv2
-                wlroots
                 jsoncpp
         )
     else ()
