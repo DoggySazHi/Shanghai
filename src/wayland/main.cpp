@@ -17,6 +17,10 @@
 #include "layer.h"
 #include "../Random.h"
 
+#ifdef SHANGHAI_ENABLE_NOTIFICATIONS
+#include "../notifications/NotificationServer.h"
+#endif
+
 
 // All Wayland runtime variables
 static struct wl_display *display;
@@ -107,6 +111,16 @@ int main() {
     output = config->getOutput();
     layer = config->getLayer();
 
+#ifdef SHANGHAI_ENABLE_NOTIFICATIONS
+    if (config->isNotificationServerEnabled()) {
+        NotificationServer::init([](const std::string& summary) {
+            if (!shanghais.empty()) {
+                shanghais[0]->say(summary);
+            }
+        });
+    }
+#endif
+
     display = wl_display_connect(nullptr);
     if (display == nullptr) {
         fprintf(stderr, "Failed to create output\n");
@@ -194,8 +208,14 @@ int main() {
     draw();
 
     while (wl_display_dispatch(display) != -1 && run_display) {
-        // This space intentionally left blank
+#ifdef SHANGHAI_ENABLE_NOTIFICATIONS
+        NotificationServer::poll();
+#endif
     }
+
+#ifdef SHANGHAI_ENABLE_NOTIFICATIONS
+    NotificationServer::shutdown();
+#endif
 
     for (const auto& deadShanghai : shanghais) {
         delete deadShanghai;

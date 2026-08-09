@@ -72,12 +72,15 @@ Shanghai::Shanghai() {
 
     stateMachine = new ShanghaiStateMachine();
     speechBubble = new SpeechBubble();
-    speechBubble->setText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 }
 
 Shanghai::~Shanghai() {
     delete stateMachine;
     delete speechBubble;
+}
+
+void Shanghai::say(const std::string& text) {
+    speechBubble->setText(text);
 }
 
 void Shanghai::releaseSharedResources() {

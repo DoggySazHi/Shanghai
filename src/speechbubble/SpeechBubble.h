@@ -14,6 +14,7 @@ public:
 
     static uint64_t msPerCharacter;
     static uint64_t msExpirationPerCharacter; // Longer messages take longer to expire
+    static uint64_t msExpirationMin; // Minimum time before expiration
     static int margin;
 
     void setPosition(int x, int y);

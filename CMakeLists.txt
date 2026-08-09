@@ -3,6 +3,21 @@ project(Shanghai)
 
 set(CMAKE_CXX_STANDARD 23)
 
+option(SHANGHAI_ENABLE_NOTIFICATIONS "Register Shanghai as the org.freedesktop.Notifications DBus service (requires libsystemd/sd-bus)" ON)
+
+set(SHANGHAI_NOTIFICATIONS_AVAILABLE FALSE)
+if (SHANGHAI_ENABLE_NOTIFICATIONS AND UNIX AND NOT APPLE)
+    find_library(SHANGHAI_SDBUS_LIBRARY NAMES systemd)
+    find_path(SHANGHAI_SDBUS_INCLUDE_DIR NAMES systemd/sd-bus.h)
+
+    if (SHANGHAI_SDBUS_LIBRARY AND SHANGHAI_SDBUS_INCLUDE_DIR)
+        set(SHANGHAI_NOTIFICATIONS_AVAILABLE TRUE)
+        message(STATUS "libsystemd/sd-bus found; notification server support enabled")
+    else ()
+        message(WARNING "SHANGHAI_ENABLE_NOTIFICATIONS is ON but libsystemd/sd-bus was not found; building without notification server support")
+    endif ()
+endif ()
+
 set(SHANGHAI_BACKEND "" CACHE STRING "Linux display backend to build: x11 or wayland")
 
 # Check if Linux
@@ -71,6 +86,13 @@ if (UNIX AND NOT APPLE)
                 src/wayland/surface.h
         )
 
+        if (SHANGHAI_NOTIFICATIONS_AVAILABLE)
+            list(APPEND SYSTEM_SPECIFIC_SOURCE
+                    src/notifications/NotificationServer.cpp
+                    src/notifications/NotificationServer.h
+            )
+        endif ()
+
     elseif (SHANGHAI_BACKEND STREQUAL "x11")
         message(STATUS "Configuring for X11")
 
@@ -80,6 +102,13 @@ if (UNIX AND NOT APPLE)
                 src/platform/stb_image_impl.cpp
                 src/x11/Platform.cpp
         )
+
+        if (SHANGHAI_NOTIFICATIONS_AVAILABLE)
+            list(APPEND SYSTEM_SPECIFIC_SOURCE
+                    src/notifications/NotificationServer.cpp
+                    src/notifications/NotificationServer.h
+            )
+        endif ()
     else ()
         message(FATAL_ERROR "Unknown SHANGHAI_BACKEND '${SHANGHAI_BACKEND}'; expected 'x11' or 'wayland'")
     endif ()
@@ -218,6 +247,12 @@ if (UNIX AND NOT APPLE)
                 OpenGL::GL
                 glfw
         )
+    endif ()
+
+    if (SHANGHAI_NOTIFICATIONS_AVAILABLE)
+        target_compile_definitions(Shanghai PRIVATE SHANGHAI_ENABLE_NOTIFICATIONS)
+        target_link_libraries(Shanghai ${SHANGHAI_SDBUS_LIBRARY})
+        target_include_directories(Shanghai PRIVATE ${SHANGHAI_SDBUS_INCLUDE_DIR})
     endif ()
 elseif (WIN32)
     find_package(OpenGL REQUIRED)

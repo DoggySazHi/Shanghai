@@ -9,6 +9,7 @@ public:
     static ShanghaiConfiguration* getInstance();
     [[nodiscard]] inline uint32_t getOutput() const { return output; }
     [[nodiscard]] inline bool isBackgroundEnabled() const { return enableBackground; }
+    [[nodiscard]] inline bool isNotificationServerEnabled() const { return enableNotificationServer; }
     [[nodiscard]] inline uint32_t getLayer() const { return layer; }
     [[nodiscard]] inline float getFallingPortalProbability() const { return fallingPortalProbability; }
 private:
@@ -23,6 +24,7 @@ private:
 
     uint32_t output = UINT32_MAX;
     bool enableBackground = false;
+    bool enableNotificationServer = false;
     uint32_t layer = 1;
     float fallingPortalProbability = 0.0f;
 };

@@ -4,6 +4,7 @@
 
 uint64_t SpeechBubble::msPerCharacter = 50;
 uint64_t SpeechBubble::msExpirationPerCharacter = 100;
+uint64_t SpeechBubble::msExpirationMin = 5000;
 int SpeechBubble::margin = 10;
 
 FontRenderer* SpeechBubble::font = nullptr;
@@ -44,7 +45,7 @@ void SpeechBubble::render(const EGLState* state) {
 
     if (charactersRendered >= text.length()) {
         if (expirationTimer == 0 && msExpirationPerCharacter != 0) {
-            expirationTimer = currentTime + msExpirationPerCharacter * text.length();
+            expirationTimer = currentTime + std::max(msExpirationPerCharacter * text.length(), msExpirationMin);
         }
     }
 

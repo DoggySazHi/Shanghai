@@ -3,6 +3,7 @@
 
 
 #include <chrono>
+#include <string>
 #include <vector>
 #include "Shader.h"
 #include "gl/Quad.h"
@@ -30,6 +31,7 @@ public:
     void setScreenGeometry(uint32_t width, uint32_t height);
     static uint64_t getTime();
     [[nodiscard]] ShanghaiStateMachine* getStateMachine() const;
+    void say(const std::string& text);
 
     float positionX = 0, positionY = 0;
     float velocityX = 0, velocityY = 0; // only used by dragging and falling states

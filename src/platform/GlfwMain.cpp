@@ -12,6 +12,10 @@
 #include "../Random.h"
 #include "../9patch/NinePatch.h"
 
+#if defined(SHANGHAI_PLATFORM_X11) && defined(SHANGHAI_ENABLE_NOTIFICATIONS)
+#include "../notifications/NotificationServer.h"
+#endif
+
 // HiDPI compensation for mouse inputs
 double cursorScaleX = 1.0, cursorScaleY = 1.0;
 
@@ -112,6 +116,16 @@ int main() {
     std::cout << "Loading configuration...\n";
     config = ShanghaiConfiguration::getInstance();
 
+#if defined(SHANGHAI_PLATFORM_X11) && defined(SHANGHAI_ENABLE_NOTIFICATIONS)
+    if (config->isNotificationServerEnabled()) {
+        NotificationServer::init([](const std::string& summary) {
+            if (!shanghais.empty()) {
+                shanghais[0]->say(summary);
+            }
+        });
+    }
+#endif
+
     glfwSetErrorCallback([](int error, const char* description) {
         std::cerr << "GLFW error " << error << ": " << description << '\n';
     });
@@ -202,8 +216,15 @@ int main() {
     while (!glfwWindowShouldClose(glfwWindow))
     {
         glfwPollEvents();
+#if defined(SHANGHAI_PLATFORM_X11) && defined(SHANGHAI_ENABLE_NOTIFICATIONS)
+        NotificationServer::poll();
+#endif
         draw();
     }
+
+#if defined(SHANGHAI_PLATFORM_X11) && defined(SHANGHAI_ENABLE_NOTIFICATIONS)
+    NotificationServer::shutdown();
+#endif
 
     for (const auto& deadShanghai : shanghais) {
         delete deadShanghai;
