@@ -188,16 +188,6 @@ int main() {
     }
 
     shanghais.push_back(new Shanghai());
-    ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING, ShanghaiState::JUMP};
-//    ShanghaiState states[] = {ShanghaiState::WALL_HOLD, ShanghaiState::WALL_CLIMB};
-    for (int i = 0; i < 40; ++i) {
-        auto* shanghai = new Shanghai();
-        shanghai->positionX = i * 128;
-        shanghais.push_back(shanghai);
-
-        shanghai->getStateMachine()->setState(states[(int) (Random::rand() * std::size(states))]);
-        shanghai->flip = Random::rand() < 0.5;
-    }
 
     std::cout << "Starting output...\n";
 
@@ -206,6 +196,14 @@ int main() {
     while (wl_display_dispatch(display) != -1 && run_display) {
         // This space intentionally left blank
     }
+
+    for (const auto& deadShanghai : shanghais) {
+        delete deadShanghai;
+    }
+    shanghais.clear();
+
+    delete background;
+    Shanghai::releaseSharedResources();
 
     wl_cursor_theme_destroy(cursor_theme);
     return 0;

@@ -190,23 +190,7 @@ int main() {
         background = new Background();
     }
 
-    auto shanghai = new Shanghai();
-    // shanghai->positionX = -40;
-    // shanghai->positionY = 1300;
-    // shanghai->flip = false;
-    // shanghai->getStateMachine()->setState(ShanghaiState::WALL_CLIMB);
-    shanghai->getStateMachine()->setState(ShanghaiState::THROWING);
-    shanghais.push_back(shanghai);
-    // ShanghaiState states[] = {ShanghaiState::CRAWLING, ShanghaiState::SITTING_AND_LOOKING, ShanghaiState::SITTING, ShanghaiState::WALKING, ShanghaiState::JUMP};
-    // // ShanghaiState states[] = {ShanghaiState::WALL_HOLD, ShanghaiState::WALL_CLIMB};
-    // for (int i = 0; i < 40; ++i) {
-    //     auto* shanghai = new Shanghai();
-    //     shanghai->positionX = i * 128;
-    //     shanghais.push_back(shanghai);
-    //
-    //     shanghai->getStateMachine()->setState(states[(int) (Random::rand() * std::size(states))]);
-    //     shanghai->flip = Random::rand() < 0.5;
-    // }
+    shanghais.push_back(new Shanghai());
 
     std::cout << "Starting output...\n";
 
