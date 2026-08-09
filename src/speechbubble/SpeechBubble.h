@@ -13,20 +13,22 @@ public:
     ~SpeechBubble();
 
     static uint64_t msPerCharacter;
+    static uint64_t msExpirationPerCharacter; // Longer messages take longer to expire
     static int margin;
 
     void setPosition(int x, int y);
     void setText(const std::string& text);
-    void render(const EGLState *state) const;
+    void render(const EGLState *state);
     static void releaseSharedResources();
 private:
     static FontRenderer* font;
     static NinePatch* ninePatch;
 
-    uint64_t startTyping;
+    uint64_t startTyping = 0;
+    uint64_t expirationTimer = 0;
     std::string text;
-    TextSize textSize{};
-    int x, y;
+    TextSize textSize { .width = 0, .height = 0 };
+    int x = 0, y = 0;
 };
 
 #endif //SHANGHAI_SPEECHBUBBLE_H
